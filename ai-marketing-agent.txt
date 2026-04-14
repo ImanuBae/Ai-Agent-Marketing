@@ -1,0 +1,58 @@
+    ai-marketing-agent/
+├── frontend/                  ← Next.js
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── (auth)/
+│   │   │   │   └── login/page.tsx
+│   │   │   ├── (dashboard)/
+│   │   │   │   ├── layout.tsx
+│   │   │   │   ├── page.tsx
+│   │   │   │   ├── content/page.tsx
+│   │   │   │   ├── trends/page.tsx
+│   │   │   │   ├── analytics/page.tsx
+│   │   │   │   └── schedule/page.tsx
+│   │   │   └── layout.tsx
+│   │   ├── components/
+│   │   │   ├── ui/            ← shadcn
+│   │   │   ├── layout/
+│   │   │   │   ├── Sidebar.tsx
+│   │   │   │   └── Header.tsx
+│   │   │   ├── dashboard/
+│   │   │   │   ├── StatsCard.tsx
+│   │   │   │   └── TrendChart.tsx
+│   │   │   └── content/
+│   │   │       └── AIContentGenerator.tsx
+│   │   ├── lib/
+│   │   │   └── api.ts         ← axios gọi backend
+│   │   └── types/index.ts
+│   ├── .env.local
+│   └── package.json
+│
+├── backend/                   ← Express.js
+│   ├── src/
+│   │   ├── routes/
+│   │   │   ├── auth.route.ts
+│   │   │   ├── content.route.ts
+│   │   │   ├── trends.route.ts
+│   │   │   ├── analytics.route.ts
+│   │   │   └── schedule.route.ts
+│   │   ├── controllers/
+│   │   │   ├── auth.controller.ts
+│   │   │   ├── content.controller.ts
+│   │   │   ├── trends.controller.ts
+│   │   │   └── schedule.controller.ts
+│   │   ├── services/
+│   │   │   ├── gemini.service.ts
+│   │   │   ├── trends.service.ts
+│   │   │   └── schedule.service.ts
+│   │   ├── middlewares/
+│   │   │   ├── auth.middleware.ts
+│   │   │   └── error.middleware.ts
+│   │   ├── prisma/
+│   │   │   └── schema.prisma
+│   │   └── index.ts           ← entry point
+│   ├── .env
+│   └── package.json
+│
+├── docker-compose.yml
+└── README.md
