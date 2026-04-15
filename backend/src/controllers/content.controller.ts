@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import prisma from '../utils/prisma';
 import { sendSuccess, sendError } from '../utils/response';
 import {
-  generateCaption,
+  generateCaptionWithHashtags,
   generateHashtags,
   generateProductDescription,
   generateContentStrategy,
@@ -17,8 +17,12 @@ export const createCaption = async (req: Request, res: Response) => {
     const { brief, platform, tone } = req.body;
     const userId = req.user!.userId;
 
-    const caption = await generateCaption(brief, platform as Platform, tone);
-    const hashtags = await generateHashtags(caption, platform as Platform);
+    // 💡 Tối ưu: 1 API call thay vì 2 (caption + hashtags cùng lúc)
+    const { caption, hashtags } = await generateCaptionWithHashtags(
+      brief, 
+      platform as Platform, 
+      tone
+    );
 
     // Lưu vào DB
     const content = await prisma.content.create({
@@ -191,7 +195,10 @@ export const getContentStrategy = async (req: Request, res: Response) => {
     const { industry, platform } = req.body;
     const userId = req.user!.userId;
 
-    // Lấy 5 bài có nhiều lượt tương tác nhất
+    // BUG FIX: Lấy 5 bài đăng mới nhất đã published (không phải "nhiều tương tác nhất"
+    // vì schema Content chưa có field engagementCount).
+    // TODO: Thêm field engagementCount vào schema Content và sort theo đó
+    // khi có dữ liệu analytics thực tế từ Phần 10.
     const topContents = await prisma.content.findMany({
       where:   { userId, platform, status: 'published' },
       take:    5,

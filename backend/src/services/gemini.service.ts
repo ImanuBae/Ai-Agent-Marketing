@@ -22,11 +22,21 @@ let isProcessing = false;
 let lastRequestTime = 0;
 const MIN_REQUEST_INTERVAL = 5000; // 5 giây minimum giữa requests
 
+// Timeout fallback để tránh deadlock nếu server crash giữa chừng
+const PROCESSING_TIMEOUT = 180000; // 3 phút
+let processingStartTime = 0;
+
 const waitForSlot = async (): Promise<void> => {
   while (isProcessing) {
+    // Nếu đang processing quá lâu → reset để tránh deadlock
+    if (Date.now() - processingStartTime > PROCESSING_TIMEOUT) {
+      console.warn('⚠️ Processing timeout — reset slot để tránh deadlock');
+      isProcessing = false;
+      break;
+    }
     await new Promise(resolve => setTimeout(resolve, 500));
   }
-  
+
   // Đảm bảo ít nhất 5 giây từ request trước
   const timeSinceLastRequest = Date.now() - lastRequestTime;
   if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
@@ -34,8 +44,9 @@ const waitForSlot = async (): Promise<void> => {
     console.log(`⏳ Chờ ${Math.ceil(waitTime / 1000)}s trước request tiếp theo...`);
     await new Promise(resolve => setTimeout(resolve, waitTime));
   }
-  
+
   isProcessing = true;
+  processingStartTime = Date.now();
 };
 
 const releaseSlot = (): void => {
@@ -43,6 +54,7 @@ const releaseSlot = (): void => {
   lastRequestTime = Date.now();
 };
 
+// ── CACHE ────────────────────────────────────────────────────
 // Simple in-memory cache để tránh gọi lại cùng prompt
 const responseCache = new Map<string, { result: string; timestamp: number }>();
 const CACHE_TTL = 3600000; // 1 hour
@@ -51,11 +63,17 @@ const getCacheKey = (input: string[]): string => {
   return input.join('|');
 };
 
-const getFromCache = (key: string): string | null => {
+// BUG FIX: Parse lại JSON khi lấy từ cache thay vì trả về raw string.
+// Trước đây generateHashtags nhận được string JSON thay vì string[].
+const getFromCache = (key: string): any | null => {
   const cached = responseCache.get(key);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
     console.log('✅ Sử dụng cached response');
-    return cached.result;
+    try {
+      return JSON.parse(cached.result); // string[] hoặc object
+    } catch {
+      return cached.result;             // string thuần (caption, description...)
+    }
   }
   responseCache.delete(key);
   return null;
@@ -74,13 +92,13 @@ const callWithRetry = async <T>(
   // Try cache first
   if (cacheKey) {
     const cached = getFromCache(cacheKey);
-    if (cached) {
-      return cached as any as T;
+    if (cached !== null) {
+      return cached as T;
     }
   }
 
   let lastError: Error | null = null;
-  
+
   for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
     try {
       await waitForSlot();
@@ -95,15 +113,14 @@ const callWithRetry = async <T>(
       }
     } catch (error: any) {
       lastError = error;
-      
+
       // Kiểm tra nếu là rate limit error (429)
       const isRateLimit = error?.response?.status === 429;
       const shouldRetry = attempt < config.maxRetries && isRateLimit;
-      
+
       if (shouldRetry) {
-        // Nếu retryDelay có trong error, dùng nó; nếu không dùng exponential backoff
         let delay = config.initialDelayMs * Math.pow(2, attempt);
-        
+
         // Cố gắng lấy retry delay từ error
         if (error?.response?.data?.errors?.errorDetails) {
           const retryInfo = error.response.data.errors.errorDetails.find(
@@ -114,31 +131,36 @@ const callWithRetry = async <T>(
             delay = (delaySeconds + 5) * 1000; // Add 5s buffer
           }
         }
-        
+
         delay = Math.min(delay + Math.random() * 5000, config.maxDelayMs);
-        
+
         console.warn(
           `⚠️  Quota exhausted (429). Attempt ${attempt + 1}/${config.maxRetries}. ` +
           `Chờ ${Math.ceil(delay / 1000)}s rồi thử lại...`
         );
-        
+
         await new Promise(resolve => setTimeout(resolve, delay));
       } else if (!isRateLimit) {
         throw error;
       }
     }
   }
-  
+
   throw lastError || new Error('Vượt quá API quota');
 };
 
 
-// ── SINH CAPTION ──────────────────────────────────────────────
-export const generateCaption = async (
+// ── SINH CAPTION + HASHTAG TRONG 1 CALL (Tối ưu quota) ────────
+interface CaptionWithHashtags {
+  caption: string;
+  hashtags: string[];
+}
+
+export const generateCaptionWithHashtags = async (
   brief: string,
   platform: 'facebook' | 'linkedin' | 'tiktok',
   tone: string = 'professional'
-): Promise<string> => {
+): Promise<CaptionWithHashtags> => {
 
   const platformGuide = {
     facebook: 'thân thiện, gần gũi, có thể dùng emoji, độ dài 100-200 từ',
@@ -146,44 +168,30 @@ export const generateCaption = async (
     tiktok:  'ngắn gọn, trendy, bắt trend giới trẻ, dùng emoji nhiều, dưới 100 từ',
   };
 
-  const prompt = `
-Bạn là chuyên gia marketing content người Việt Nam.
-Viết caption cho bài đăng ${platform.toUpperCase()} dựa trên thông tin sau:
-
-Thông tin sản phẩm/dịch vụ: ${brief}
-Tone giọng văn: ${tone}
-Yêu cầu platform: ${platformGuide[platform]}
-
-Chỉ trả về nội dung caption, không giải thích thêm.
-  `.trim();
-
-  return callWithRetry(
-    async () => {
-      const result = await model.generateContent(prompt);
-      return result.response.text();
-    },
-    getCacheKey([brief, platform, tone])
-  );
-};
-
-// ── GỢI Ý HASHTAG ─────────────────────────────────────────────
-export const generateHashtags = async (
-  content: string,
-  platform: 'facebook' | 'linkedin' | 'tiktok'
-): Promise<string[]> => {
-
-  const countGuide = {
+  const hashtagCount = {
     facebook: '5-10',
     linkedin: '3-5',
     tiktok:  '10-15',
   };
 
   const prompt = `
-Dựa trên nội dung sau, gợi ý ${countGuide[platform]} hashtag phù hợp cho ${platform.toUpperCase()}.
-Nội dung: ${content}
+Bạn là chuyên gia marketing content người Việt Nam.
+Dựa trên thông tin sản phẩm, tạo caption và gợi ý hashtag cho ${platform.toUpperCase()}.
 
-Trả về ĐÚNG định dạng JSON array, ví dụ: ["#hashtag1", "#hashtag2"]
-Không trả về gì khác ngoài JSON array đó.
+Thông tin sản phẩm: ${brief}
+Tone giọng văn: ${tone}
+Yêu cầu platform: ${platformGuide[platform]}
+
+TRƯỚC TIÊN viết caption (không giải thích thêm).
+Sau đó gợi ý ${hashtagCount[platform]} hashtag phù hợp.
+
+Trả về đúng định dạng JSON:
+{
+  "caption": "Nội dung caption ở đây",
+  "hashtags": ["#hashtag1", "#hashtag2", "#hashtag3"]
+}
+
+CHỈ trả JSON, không thêm bất cứ gì khác.
   `.trim();
 
   return callWithRetry(
@@ -193,10 +201,36 @@ Không trả về gì khác ngoài JSON array đó.
 
       // Parse JSON an toàn
       const clean = text.replace(/```json|```/g, '').trim();
-      return JSON.parse(clean);
+      const parsed = JSON.parse(clean);
+      
+      return {
+        caption: parsed.caption || '',
+        hashtags: Array.isArray(parsed.hashtags) ? parsed.hashtags : [],
+      } as CaptionWithHashtags;
     },
-    getCacheKey([content, platform])
+    getCacheKey([brief, platform, tone])
   );
+};
+
+// ── SINH CAPTION (Legacy - sử dụng hàm kết hợp) ──────────────
+export const generateCaption = async (
+  brief: string,
+  platform: 'facebook' | 'linkedin' | 'tiktok',
+  tone: string = 'professional'
+): Promise<string> => {
+  const result = await generateCaptionWithHashtags(brief, platform, tone);
+  return result.caption;
+};
+
+// ── GỢI Ý HASHTAG (Legacy - sử dụng hàm kết hợp) ──────────────
+export const generateHashtags = async (
+  content: string,
+  platform: 'facebook' | 'linkedin' | 'tiktok'
+): Promise<string[]> => {
+  // Note: Hàm cũ nhận 'content' nhưng chúng ta cần 'brief'
+  // Chỉ dùng cho backward compatibility, tốt nhất sử dụng generateCaptionWithHashtags
+  const result = await generateCaptionWithHashtags(content, platform, 'professional');
+  return result.hashtags;
 };
 
 // ── TẠO MÔ TẢ SẢN PHẨM ───────────────────────────────────────
