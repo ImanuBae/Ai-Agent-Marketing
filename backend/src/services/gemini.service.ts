@@ -204,13 +204,13 @@ export const generateCaptionWithHashtags = async (
   const platformGuide = {
     facebook: 'thân thiện, gần gũi, có thể dùng emoji, độ dài 100-200 từ',
     linkedin: 'chuyên nghiệp, nghiêm túc, không dùng nhiều emoji, độ dài 150-300 từ',
-    tiktok:  'ngắn gọn, trendy, bắt trend giới trẻ, dùng emoji nhiều, dưới 100 từ',
+    tiktok: 'ngắn gọn, trendy, bắt trend giới trẻ, dùng emoji nhiều, dưới 100 từ',
   };
 
   const hashtagCount = {
     facebook: '5-10',
     linkedin: '3-5',
-    tiktok:  '10-15',
+    tiktok: '10-15',
   };
 
   const prompt = `
@@ -236,12 +236,12 @@ CHỈ trả JSON, không thêm bất cứ gì khác.
   return callWithRetry(
     async () => {
       const result = await model.generateContent(prompt);
-      const text   = result.response.text().trim();
+      const text = result.response.text().trim();
 
       // Parse JSON an toàn
       const clean = text.replace(/```json|```/g, '').trim();
       const parsed = JSON.parse(clean);
-      
+
       return {
         caption: parsed.caption || '',
         hashtags: Array.isArray(parsed.hashtags) ? parsed.hashtags : [],
