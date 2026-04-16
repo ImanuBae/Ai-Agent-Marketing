@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     try {
-      const response = await api.get('/auth/me');
+      const response = await api.get('auth/me');
       console.log("AuthProvider: Session verified");
       if (response.data?.success) {
         setUser(response.data.data);
@@ -75,7 +75,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const response = await api.post('/auth/login', { email, password });
+      const response = await api.post('auth/login', { email, password });
       
       if (response.data?.success) {
         // Backend returns token and user, Axios can intercept to handle token if needed
@@ -101,7 +101,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const register = async (data: RegisterData) => {
     setIsLoading(true);
     try {
-      const response = await api.post('/auth/register', {
+      const response = await api.post('auth/register', {
         name: data.name,
         email: data.email,
         password: data.password,
@@ -130,7 +130,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!user) return;
     setIsLoading(true);
     try {
-      const response = await api.put('/users/profile', data);
+      const response = await api.put('users/profile', data);
       if (response.data?.success) {
         setUser((prev) => prev ? { ...prev, ...response.data.data } : null);
       }
@@ -145,7 +145,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const changePassword = async (oldPass: string, newPass: string) => {
     setIsLoading(true);
     try {
-      await api.put('/auth/change-password', {
+      await api.put('auth/change-password', {
         currentPassword: oldPass,
         newPassword: newPass,
       });
