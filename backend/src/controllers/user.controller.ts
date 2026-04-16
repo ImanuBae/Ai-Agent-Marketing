@@ -2,6 +2,7 @@
 import { Request, Response } from 'express';
 import prisma from '../utils/prisma';
 import { sendSuccess, sendError } from '../utils/response';
+import { getQuotaStatus, testGeminiAPI } from '../services/gemini.service';
 
 // ── CẬP NHẬT THÔNG TIN CÁ NHÂN ────────────────────────────────
 export const updateProfile = async (req: Request, res: Response) => {
@@ -179,6 +180,37 @@ export const toggleAdminRole = async (req: Request, res: Response) => {
       : 'Đã thu hồi quyền Admin thành công';
 
     return sendSuccess(res, message, updated);
+  } catch (error) {
+    return sendError(res, 'Lỗi server', 500, error);
+  }
+};
+
+// ── KIỂM TRA QUOTA API GEMINI ──────────────────────────────────
+export const getApiQuotaStatus = async (req: Request, res: Response) => {
+  try {
+    const quota = getQuotaStatus();
+    
+    return sendSuccess(res, 'Lấy thông tin quota thành công', {
+      quota,
+      message: quota.remaining === 0 
+        ? '⚠️ Hết quota cho hôm nay. Quay lại vào ngày mai!'
+        : `Còn ${quota.remaining}/${quota.limit} requests`,
+    });
+  } catch (error) {
+    return sendError(res, 'Lỗi server', 500, error);
+  }
+};
+
+// ── TEST GEMINI API ────────────────────────────────────────────
+export const testGeminiConnection = async (req: Request, res: Response) => {
+  try {
+    const result = await testGeminiAPI();
+    
+    if (result.success) {
+      return sendSuccess(res, '✅ Gemini API hoạt động bình thường', result);
+    } else {
+      return sendError(res, '❌ Lỗi kết nối Gemini API', 500, result.error);
+    }
   } catch (error) {
     return sendError(res, 'Lỗi server', 500, error);
   }
