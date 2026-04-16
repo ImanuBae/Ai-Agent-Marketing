@@ -12,6 +12,8 @@ import authRoutes from './routes/auth.route';
 import userRoutes from './routes/user.route';
 import { errorHandler } from './middlewares/error.middleware';
 import contentRoutes from './routes/content.route';
+import adminRoutes from './routes/admin.route';
+import chatRoutes from './routes/chat.route';
 
 dotenv.config();
 
@@ -33,6 +35,8 @@ if (process.env.NODE_ENV === 'development') {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/content', contentRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/chat', chatRoutes);
 
 // ── Swagger Docs ───────────────────────────────────────────────
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
