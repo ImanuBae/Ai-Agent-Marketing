@@ -4,6 +4,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
+
 // ── RATE LIMITING & RETRY LOGIC ──────────────────────────────
 interface RetryConfig {
   maxRetries: number;
@@ -12,15 +13,15 @@ interface RetryConfig {
 }
 
 const defaultRetryConfig: RetryConfig = {
-  maxRetries: 2,
-  initialDelayMs: 30000,  // 30 seconds (Gemini Free Tier yêu cầu)
-  maxDelayMs: 120000,     // 120 seconds max
+  maxRetries: 2,  // ✅ Upgraded: can retry more on gemini-3.1-flash-lite
+  initialDelayMs: 5000,   // 5 seconds (more forgiving quota now)
+  maxDelayMs: 60000,      // 60 seconds max
 };
 
-// Sequential request queue - chỉ 1 request tại một thời điểm
+// Sequential request queue - cho phép tối đa 15 requests/phút
 let isProcessing = false;
 let lastRequestTime = 0;
-const MIN_REQUEST_INTERVAL = 5000; // 5 giây minimum giữa requests
+const MIN_REQUEST_INTERVAL = 4000; // 4 giây minimum (15 requests/phút = 60/15 = 4s)
 
 // Timeout fallback để tránh deadlock nếu server crash giữa chừng
 const PROCESSING_TIMEOUT = 180000; // 3 phút
@@ -57,7 +58,26 @@ const releaseSlot = (): void => {
 // ── CACHE ────────────────────────────────────────────────────
 // Simple in-memory cache để tránh gọi lại cùng prompt
 const responseCache = new Map<string, { result: string; timestamp: number }>();
-const CACHE_TTL = 3600000; // 1 hour
+const CACHE_TTL = 3600000; // 1 hour (can be aggressive since quota is higher)
+
+// Request tracking for gemini-3.1-flash-lite quota
+let requestCount = 0;
+const DAILY_QUOTA_LIMIT = 500; // 500 requests/day
+const resetTrackerAtMidnight = () => {
+  const now = new Date();
+  const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  tomorrow.setHours(0, 0, 0, 0);
+  const timeUntilReset = tomorrow.getTime() - now.getTime();
+  setTimeout(() => {
+    requestCount = 0;
+    console.log('📊 Daily quota tracker reset');
+    resetTrackerAtMidnight();
+  }, timeUntilReset);
+};
+
+if (process.env.NODE_ENV === 'production') {
+  resetTrackerAtMidnight();
+}
 
 const getCacheKey = (input: string[]): string => {
   return input.join('|');
@@ -103,7 +123,18 @@ const callWithRetry = async <T>(
     try {
       await waitForSlot();
       try {
+        // Check quota before making request
+        if (requestCount >= DAILY_QUOTA_LIMIT) {
+          throw new Error(
+            `🚫 Vượt quá quota hàng ngày (${DAILY_QUOTA_LIMIT} requests). ` +
+            `Vui lòng quay lại sau ngày mai.`
+          );
+        }
+        
         const result = await fn();
+        requestCount++;
+        console.log(`📊 Gemini API call used (${requestCount}/${DAILY_QUOTA_LIMIT})`);
+        
         if (cacheKey) {
           setCache(cacheKey, JSON.stringify(result));
         }
@@ -113,6 +144,14 @@ const callWithRetry = async <T>(
       }
     } catch (error: any) {
       lastError = error;
+      
+      // 🔴 Log chi tiết error để debug
+      console.error('❌ Gemini API Error:', {
+        status: error?.response?.status,
+        statusText: error?.response?.statusText,
+        message: error?.message,
+        fullError: error,
+      });
 
       // Kiểm tra nếu là rate limit error (429)
       const isRateLimit = error?.response?.status === 429;
@@ -140,7 +179,8 @@ const callWithRetry = async <T>(
         );
 
         await new Promise(resolve => setTimeout(resolve, delay));
-      } else if (!isRateLimit) {
+      } else {
+        // 🔴 Don't retry non-rate-limit errors on free tier
         throw error;
       }
     }
@@ -294,4 +334,37 @@ Trả lời bằng tiếng Việt, ngắn gọn và thực tế.
     },
     getCacheKey([industry, topPosts, platform])
   );
+};
+
+// ── KIỂM TRA QUOTA CÒN LẠI ──────────────────────────────────
+export const getQuotaStatus = () => {
+  return {
+    used: requestCount,
+    limit: DAILY_QUOTA_LIMIT,
+    remaining: Math.max(0, DAILY_QUOTA_LIMIT - requestCount),
+    percentage: Math.round((requestCount / DAILY_QUOTA_LIMIT) * 100),
+  };
+};
+
+// ── TEST API ──────────────────────────────────────────────────
+export const testGeminiAPI = async () => {
+  try {
+    console.log('🧪 Testing Gemini API...');
+    console.log('API Key exists:', !!process.env.GEMINI_API_KEY);
+    console.log('Model name:', 'gemini-2.0-flash');
+    
+    const result = await model.generateContent('Say hello in one word');
+    const response = result.response.text();
+    
+    console.log('✅ Gemini API test SUCCESS:', response);
+    return { success: true, response };
+  } catch (error: any) {
+    console.error('❌ Gemini API test FAILED:', {
+      status: error?.response?.status,
+      statusText: error?.response?.statusText,
+      message: error?.message,
+      data: error?.response?.data,
+    });
+    return { success: false, error: error?.message };
+  }
 };

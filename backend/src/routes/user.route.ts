@@ -2,14 +2,26 @@
 import { Router } from 'express';
 import {
   updateProfile, getAllUsers, getUserById,
-  toggleLockUser, deleteUser, toggleAdminRole,
+  toggleLockUser, deleteUser, toggleAdminRole, getApiQuotaStatus, testGeminiConnection,
 } from '../controllers/user.controller';
 import { authenticate } from '../middlewares/auth.middleware';
 import { requireAdmin } from '../middlewares/auth.middleware';
 
 const router = Router();
 
-// Tất cả routes đều cần đăng nhập
+/**
+ * @swagger
+ * /api/users/test/gemini:
+ *   get:
+ *     summary: Test kết nối Gemini API (không cần auth)
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: Kết nối thành công
+ */
+router.get('/test/gemini', testGeminiConnection);
+
+// Tất cả routes dưới đây đều cần đăng nhập
 router.use(authenticate);
 
 /**
@@ -136,5 +148,17 @@ router.put('/:id/toggle-admin', requireAdmin, toggleAdminRole);
  *         description: Xóa thành công
  */
 router.delete('/:id', requireAdmin, deleteUser);
+
+/**
+ * @swagger
+ * /api/users/quota/status:
+ *   get:
+ *     summary: Kiểm tra quota API Gemini còn lại
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: Thông tin quota
+ */
+router.get('/quota/status', getApiQuotaStatus);
 
 export default router;
