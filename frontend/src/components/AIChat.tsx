@@ -81,7 +81,7 @@ export default function AIChat() {
           {t("chat.assistant_title")}
         </h2>
       </div>
-      <div className="grid md:grid-cols-[280px_1fr] gap-4">
+      <div className="grid lg:grid-cols-[260px_1fr] gap-4">
         {/* Sidebar Suggestions */}
         <div className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-[24px] border border-white/50 dark:border-white/10 shadow-lg hover:shadow-xl p-5 space-y-3 transition-all duration-300">
           <div className="text-xs text-gray-600 dark:text-gray-400 uppercase tracking-wider font-semibold mb-2">

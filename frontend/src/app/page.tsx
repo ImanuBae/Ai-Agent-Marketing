@@ -23,7 +23,7 @@ export default function Home() {
     <div className="h-full w-full grad-bg text-gray-900 overflow-auto dark:bg-slate-950 transition-colors">
       <Header />
       
-      <main className="max-w-7xl mx-auto px-4 pt-36 pb-4 space-y-12">
+      <main className="max-w-7xl mx-auto px-4 pt-28 sm:pt-32 lg:pt-36 pb-4 space-y-12">
         <Hero />
         <AIChat />
         <TrendingCards />
