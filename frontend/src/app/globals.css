@@ -81,6 +81,17 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* Coral/Peach Theme Tokens */
+  --coral-500: #E8734A;
+  --coral-600: #D4623C;
+  --coral-400: #F09070;
+  --coral-300: #F4A98C;
+  --coral-100: #FDE8DF;
+  --coral-50: #FEF3EE;
+  --peach-bg: #FDF0E9;
+  --cream-bg: #FEFAF7;
+  --warm-gray: #F8F4F0;
 }
 
 .dark {
@@ -109,12 +120,18 @@
   --chart-5: oklch(0.269 0 0);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary: #E8734A;
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+
+  --coral-500: #E8734A;
+  --coral-600: #F09070;
+  --coral-400: #F4A98C;
+  --coral-100: rgba(232, 115, 74, 0.15);
+  --coral-50: rgba(232, 115, 74, 0.08);
 }
 
 @layer base {
@@ -129,10 +146,10 @@
   }
 }
 
-/* --- CUSTOM STYLES FROM TEST-GIAODIEN --- */
+/* --- CORAL/PEACH THEME STYLES --- */
 
 .grad-bg {
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 40%, #f0f3f7 100%);
+    background: linear-gradient(135deg, var(--peach-bg) 0%, var(--cream-bg) 40%, #ffffff 100%);
 }
 
 .dark .grad-bg {
@@ -141,24 +158,25 @@
 }
 
 .card-glow:hover {
-    box-shadow: 0 0 30px rgba(59, 130, 246, 0.15);
+    box-shadow: 0 0 30px rgba(232, 115, 74, 0.15);
     transform: translateY(-6px);
 }
 
 .dark .card-glow:hover {
-    box-shadow: 0 0 40px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 0 40px rgba(232, 115, 74, 0.25);
 }
 
 .logo-multiply {
     mix-blend-mode: multiply;
+    background: transparent !important;
 }
 
 .accent-gradient {
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    background: linear-gradient(135deg, #E8734A, #F09070);
 }
 
 .text-accent-grad {
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    background: linear-gradient(135deg, #E8734A, #D4623C);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -187,13 +205,13 @@
 .fade-up-d5 { animation-delay: 0.5s; }
 
 .chat-bubble {
-    background: rgba(59, 130, 246, 0.08);
-    border: 1px solid rgba(59, 130, 246, 0.15);
+    background: rgba(232, 115, 74, 0.06);
+    border: 1px solid rgba(232, 115, 74, 0.12);
 }
 
 .chat-user {
-    background: rgba(139, 92, 246, 0.12);
-    border: 1px solid rgba(139, 92, 246, 0.2);
+    background: rgba(232, 115, 74, 0.10);
+    border: 1px solid rgba(232, 115, 74, 0.18);
 }
 
 .glass-card {
@@ -224,7 +242,7 @@
     background-size: cover;
     background-position: center;
     border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 40px 100px -20px rgba(232, 115, 74, 0.08);
 }
 
 .dark .hero-banner {
@@ -232,7 +250,7 @@
         linear-gradient(to right, rgba(15, 23, 42, 0.9) 10%, rgba(15, 23, 42, 0.15) 100%),
         url('/banner.jpg');
     border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 0 80px -20px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 0 80px -20px rgba(232, 115, 74, 0.15);
 }
 
 .mesh-blob {
@@ -246,11 +264,6 @@
 
 .dark .mesh-blob {
     opacity: 0.15;
-}
-
-.logo-multiply {
-    mix-blend-mode: multiply;
-    background: transparent !important;
 }
 
 .logo-dark-fix {
@@ -271,7 +284,7 @@
 }
 
 .cta-swiper .swiper-pagination-bullet-active {
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6) !important;
+    background: linear-gradient(135deg, #E8734A, #F09070) !important;
     width: 24px;
     border-radius: 4px;
 }

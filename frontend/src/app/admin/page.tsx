@@ -52,7 +52,7 @@ export default function AdminPage() {
   if (isLoading) {
     return (
       <div className="h-[80vh] flex flex-col items-center justify-center gap-4">
-        <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
+        <Loader2 className="w-12 h-12 text-[#E8734A] animate-spin" />
         <p className="text-gray-400 font-bold animate-pulse">Đang thu thập dữ liệu hệ thống...</p>
       </div>
     );
@@ -65,8 +65,8 @@ export default function AdminPage() {
       change: "+12.5%", 
       isPositive: true, 
       icon: Users,
-      color: "text-blue-500",
-      bg: "bg-blue-500/10"
+      color: "text-[#E8734A]",
+      bg: "bg-[#E8734A]/10"
     },
     { 
       label: "Chiến dịch đang chạy", 
@@ -100,7 +100,7 @@ export default function AdminPage() {
   return (
     <div className="space-y-8 animate-fade-in text-white">
       <div>
-        <h1 className="text-3xl font-black text-white mb-2 uppercase tracking-tighter">Hệ thống Overview</h1>
+        <h1 className="text-3xl font-black text-white mb-2 uppercase tracking-tight">Hệ thống Overview</h1>
         <p className="text-gray-400">Chào mừng trở lại, Admin. Đây là tình trạng máy chủ hiện tại.</p>
       </div>
 
@@ -129,7 +129,7 @@ export default function AdminPage() {
         <div className="lg:col-span-2 bg-white/5 border border-white/10 rounded-3xl p-8">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <ShieldCheck className="text-blue-500" /> Trạng thái dịch vụ
+              <ShieldCheck className="text-[#E8734A]" /> Trạng thái dịch vụ
             </h2>
             <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase rounded-full border border-emerald-500/20">
               Mọi thứ đều ổn định
@@ -138,7 +138,7 @@ export default function AdminPage() {
 
           <div className="space-y-6">
             {[
-              { name: "API Server", status: statsData?.apiServerStatus || "Stable", width: "w-0", color: "bg-blue-500" },
+              { name: "API Server", status: statsData?.apiServerStatus || "Stable", width: "w-0", color: "bg-[#E8734A]" },
               { name: "AI Gateway (Gemini)", status: statsData?.aiGatewayStatus || "Stable", width: "w-0", color: "bg-purple-500" },
               { name: "Database (PostgreSQL)", status: statsData?.databaseStatus || "Active", width: "w-0", color: "bg-emerald-500" },
               { name: "File Storage", status: `${statsData?.storageUsage || 0}% Used`, width: "w-0", color: "bg-amber-500" },
@@ -149,7 +149,7 @@ export default function AdminPage() {
                   <p className="text-[10px] font-medium text-gray-500">{service.status}</p>
                 </div>
                 <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                  <div className={`h-full ${service.color} ${service.width} rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(59,130,246,0.5)]`} />
+                  <div className={`h-full ${service.color} ${service.width} rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(232,115,74,0.3)]`} />
                 </div>
               </div>
             ))}
@@ -166,7 +166,7 @@ export default function AdminPage() {
               <div key={i} className="flex gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.05] transition cursor-pointer">
                 <div className={`w-1 h-8 rounded-full ${
                   alert.type === "warning" ? "bg-amber-500" : 
-                  alert.type === "success" ? "bg-emerald-500" : "bg-blue-500"
+                  alert.type === "success" ? "bg-emerald-500" : "bg-[#E8734A]"
                 }`} />
                 <div>
                   <p className="text-sm font-bold text-gray-200">{alert.title}</p>

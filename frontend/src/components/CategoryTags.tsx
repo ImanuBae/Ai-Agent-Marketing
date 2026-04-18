@@ -28,14 +28,14 @@ export default function CategoryTags() {
     <section className="fade-up fade-up-d3">
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2.5">
-          <div className="w-1 h-5 bg-emerald-600 rounded-full"></div>
+          <div className="w-1 h-5 bg-[#E8734A] rounded-full"></div>
           <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white uppercase tracking-wide">
             {t("categories.title")}
           </h2>
         </div>
         <button
           onClick={() => setShowAll(!showAll)}
-          className="text-xs sm:text-sm font-medium text-emerald-600 hover:text-emerald-700 transition flex items-center"
+          className="text-xs sm:text-sm font-medium text-[#E8734A] hover:text-[#D4623C] transition flex items-center"
         >
           {showAll ? t("categories.show_less") : t("categories.show_all")}{" "}
           <ChevronDown className={`w-4 h-4 ml-0.5 transition-transform ${showAll ? "rotate-180" : ""}`} />
@@ -46,7 +46,7 @@ export default function CategoryTags() {
         {categories.map((cat, i) => (
           <button
             key={i}
-            className={`${cat.hidden && !showAll ? "hidden" : "flex"} shrink-0 flex flex-col items-center justify-center gap-2 w-24 h-24 rounded-2xl ${cat.bg} hover:brightness-95 transition hover:-translate-y-1 cursor-pointer shadow-sm`}
+            className={`${cat.hidden && !showAll ? "hidden" : "flex"} shrink-0 flex flex-col items-center justify-center gap-2 w-24 h-24 rounded-[20px] ${cat.bg} backdrop-blur-md border border-white/60 dark:border-white/5 hover:brightness-105 transition-all hover:-translate-y-1 cursor-pointer shadow-md hover:shadow-xl`}
           >
             <span className="text-2xl">{cat.emoji}</span>
             <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">{cat.label}</span>

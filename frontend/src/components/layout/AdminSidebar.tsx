@@ -11,8 +11,9 @@ import {
   ChevronLeft,
   ChevronRight,
   LayoutDashboard,
-  Bell,
-  Database
+  Database,
+  FileText,
+  Wrench
 } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
@@ -26,8 +27,9 @@ export default function AdminSidebar() {
   const menuItems = [
     { name: "Tổng quan", icon: LayoutDashboard, href: "/admin" },
     { name: "Người dùng", icon: Users, href: "/admin/users" },
+    { name: "Nội dung AI", icon: FileText, href: "/admin/content" },
     { name: "Hệ thống", icon: Activity, href: "/admin/system" },
-    { name: "Cấu hình AI", icon: Settings, href: "/admin/config" },
+    { name: "Cài đặt", icon: Wrench, href: "/admin/settings" },
     { name: "Logs hệ thống", icon: Database, href: "/admin/logs" },
   ];
 
@@ -41,12 +43,12 @@ export default function AdminSidebar() {
       <div className="p-6 flex items-center justify-between border-b border-white/5">
         {!isCollapsed && (
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-black text-white">
+            <div className="w-8 h-8 rounded-lg accent-gradient flex items-center justify-center font-black text-white">
               A
             </div>
             <div>
               <p className="font-black text-sm text-white leading-none">Admin Panel</p>
-              <p className="text-[10px] text-blue-400 font-bold uppercase tracking-wider mt-1">Ai-Agent</p>
+              <p className="text-[10px] text-[#E8734A] font-bold uppercase tracking-wider mt-1">Ai-Agent</p>
             </div>
           </div>
         )}
@@ -73,12 +75,12 @@ export default function AdminSidebar() {
                   href={item.href}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group ${
                     isActive 
-                      ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20 font-bold" 
-                      : "hover:bg-white/5 hover:text-white"
+                      ? "accent-gradient text-white shadow-lg shadow-[#E8734A]/20 font-bold" 
+                      : "hover:bg-white/5 hover:text-white text-gray-400"
                   }`}
                   title={isCollapsed ? item.name : ""}
                 >
-                  <item.icon size={20} className={isActive ? "text-white" : "text-gray-500 group-hover:text-blue-400 transition-colors"} />
+                  <item.icon size={20} className={isActive ? "text-white" : "text-gray-500 group-hover:text-[#E8734A] transition-colors"} />
                   {!isCollapsed && <span>{item.name}</span>}
                 </Link>
               );
@@ -100,7 +102,7 @@ export default function AdminSidebar() {
                   <span className="text-green-400">Stable</span>
                 </div>
                 <div className="h-1 bg-white/10 rounded-full overflow-hidden">
-                  <div className="w-[85%] h-full bg-blue-500" />
+                  <div className="w-[85%] h-full bg-[#E8734A]" />
                 </div>
               </div>
             </div>

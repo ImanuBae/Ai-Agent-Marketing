@@ -98,7 +98,7 @@ export default function AIContentGenerator() {
       <div className="space-y-6">
         <div className="bg-white dark:bg-slate-900 rounded-[32px] p-8 shadow-xl border border-gray-100 dark:border-white/5">
           <div className="flex items-center gap-3 mb-6">
-            <div className="p-3 rounded-2xl bg-blue-50 dark:bg-blue-500/10 text-blue-600">
+            <div className="p-3 rounded-2xl bg-[#FDE8DF] dark:bg-[#E8734A]/10 text-[#E8734A]">
               <Rocket size={24} />
             </div>
             <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tighter">
@@ -115,7 +115,7 @@ export default function AIContentGenerator() {
                 value={brief}
                 onChange={(e) => setBrief(e.target.value)}
                 placeholder="Ví dụ: Giới thiệu bộ sưu tập giày thể thao mới cho mùa hè, chất liệu thoáng khí, giảm giá 20%..."
-                className="w-full min-h-[160px] p-4 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all resize-none text-gray-900 dark:text-white"
+                className="w-full min-h-[160px] p-4 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-[#E8734A] outline-none transition-all resize-none text-gray-900 dark:text-white"
               />
             </div>
 
@@ -126,9 +126,9 @@ export default function AIContentGenerator() {
                 </label>
                 <div className="flex gap-2">
                   {[
-                    { id: "facebook", icon: FacebookIcon, color: "hover:text-blue-600" },
+                    { id: "facebook", icon: FacebookIcon, color: "hover:text-[#E8734A]" },
                     { id: "tiktok", icon: PlayCircle, color: "hover:text-pink-600" },
-                    { id: "linkedin", icon: LinkedinIcon, color: "hover:text-sky-600" },
+                    { id: "linkedin", icon: LinkedinIcon, color: "hover:text-[#D4623C]" },
                   ].map((p) => (
                     <button
                       key={p.id}
@@ -136,8 +136,8 @@ export default function AIContentGenerator() {
                       className={cn(
                         "flex-1 flex items-center justify-center p-3 rounded-2xl border transition-all",
                         platform === p.id 
-                          ? "bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-500/20" 
-                          : "bg-white dark:bg-white/5 border-gray-100 dark:border-white/5 text-gray-500 hover:border-blue-200"
+                          ? "bg-[#E8734A] border-[#E8734A] text-white shadow-lg shadow-[#E8734A]/20" 
+                          : "bg-white dark:bg-white/5 border-gray-100 dark:border-white/5 text-gray-500 hover:border-[#E8734A]/30"
                       )}
                     >
                       <p.icon size={20} />
@@ -153,7 +153,7 @@ export default function AIContentGenerator() {
                 <select
                   value={tone}
                   onChange={(e) => setTone(e.target.value)}
-                  className="w-full p-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white appearance-none"
+                  className="w-full p-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl outline-none focus:ring-2 focus:ring-[#E8734A] text-gray-900 dark:text-white appearance-none"
                 >
                   {tones.map((t) => (
                     <option key={t.id} value={t.id} className="dark:bg-slate-900">
@@ -206,8 +206,8 @@ export default function AIContentGenerator() {
           <div className="flex-1 min-h-[300px] bg-gray-50 dark:bg-white/5 rounded-2xl p-6 relative">
             {!generatedContent && !loading && (
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8">
-                <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-4">
-                  <Wand2 className="text-blue-600" />
+                <div className="w-16 h-16 bg-[#FDE8DF] dark:bg-[#E8734A]/10 rounded-full flex items-center justify-center mb-4">
+                  <Wand2 className="text-[#E8734A]" />
                 </div>
                 <p className="text-gray-500 font-bold">Chưa có nội dung</p>
                 <p className="text-xs text-gray-400 mt-1">
@@ -219,8 +219,8 @@ export default function AIContentGenerator() {
             {loading && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
-                  <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                  <p className="text-sm font-bold text-blue-500 animate-pulse">AI đang viết bài...</p>
+                  <div className="w-12 h-12 border-4 border-[#E8734A] border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm font-bold text-[#E8734A] animate-pulse">AI đang viết bài...</p>
                 </div>
               </div>
             )}
@@ -234,7 +234,7 @@ export default function AIContentGenerator() {
                   {generatedContent.hashtags.map((tag, i) => (
                     <span 
                       key={i} 
-                      className="text-sm font-bold text-blue-600 bg-blue-50 dark:bg-blue-500/10 px-3 py-1 rounded-lg"
+                      className="text-sm font-bold text-[#E8734A] bg-[#FDE8DF] dark:bg-[#E8734A]/10 px-3 py-1 rounded-lg"
                     >
                       {tag}
                     </span>
