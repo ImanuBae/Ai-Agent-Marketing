@@ -3,6 +3,8 @@
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination, EffectFade } from "swiper/modules";
 import { useTranslation } from "@/i18n/LanguageContext";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 // Import Swiper styles
 import "swiper/css";
@@ -11,6 +13,8 @@ import "swiper/css/effect-fade";
 
 export default function CTASwiper() {
   const { t } = useTranslation();
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
   const ctaData = t("cta.items") as unknown as { title: string, subtitle: string, desc: string, btnText: string }[];
 
   const slides = [
@@ -50,19 +54,22 @@ export default function CTASwiper() {
         className="cta-swiper overflow-hidden rounded-[40px] shadow-2xl"
       >
         {slides.map((slide, i) => (
-          <SwiperSlide key={i}>
-            <div className={`${slide.className} text-center py-32 px-6 relative min-h-[460px] flex items-center justify-center`}>
-              <div className="absolute inset-0 bg-black/40 z-0"></div>
-              <div className="relative z-10">
-                <h2 className="text-3xl sm:text-4xl font-extrabold mb-4 text-white">
+        <SwiperSlide key={i}>
+            <div className="text-center py-32 px-6 relative min-h-[460px] flex items-center justify-center bg-gray-50 dark:bg-slate-900 overflow-hidden">
+              <div className="absolute inset-0 bg-[#E8734A]/5 blur-3xl rounded-full scale-150"></div>
+              <div className="relative z-10 p-8 rounded-[40px] bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-[#E8734A]/20 dark:border-white/5 shadow-xl max-w-3xl w-full">
+                <h2 className="text-4xl sm:text-5xl font-extrabold mb-6 text-gray-900 dark:text-white">
                   {slide.title}
                   <br />
-                  <span className="text-accent-grad">{slide.subtitle}</span>
+                  <span className="text-[#E8734A]">{slide.subtitle}</span>
                 </h2>
-                <p className="text-gray-200 max-w-lg mx-auto mb-8 font-medium">
+                <p className="text-gray-600 dark:text-gray-400 max-w-xl mx-auto mb-10 font-medium text-lg leading-relaxed">
                   {slide.desc}
                 </p>
-                <button className="accent-gradient px-8 py-3.5 rounded-full font-bold text-white text-lg hover:opacity-90 transition shadow-lg hover:scale-105 active:scale-95">
+                <button 
+                  onClick={() => router.push(isAuthenticated ? "/dashboard" : "/login")}
+                  className="accent-gradient px-8 py-3.5 rounded-full font-bold text-white text-lg hover:opacity-90 transition shadow-lg hover:scale-105 active:scale-95"
+                >
                   {slide.btnText}
                 </button>
               </div>

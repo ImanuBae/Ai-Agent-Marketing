@@ -67,8 +67,8 @@ export default function Header() {
     <header 
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled 
-          ? "bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-black/5 shadow-sm py-1" 
-          : "bg-white dark:bg-slate-900 py-2"
+          ? "bg-[#FEFAF7]/95 dark:bg-[#0f172a]/95 backdrop-blur-xl border-b border-[#E8734A]/20 dark:border-white/10 shadow-md py-1" 
+          : "bg-white/60 dark:bg-slate-900/60 backdrop-blur-lg border-b border-white/50 dark:border-white/10 shadow-sm py-2"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 flex items-center justify-between gap-6 transition-all duration-300">
@@ -80,6 +80,7 @@ export default function Header() {
             alt="AI Marketing Agent Logo"
             width={120}
             height={90}
+            priority
             className={`w-auto object-contain cursor-pointer origin-left logo-multiply logo-dark-fix transition-all ${
               isScrolled ? "h-16 md:h-20" : "h-20 md:h-24"
             } hover:scale-105`}
@@ -99,7 +100,7 @@ export default function Header() {
             <input
               type="text"
               placeholder={t("header.search")}
-              className={`w-full bg-gray-50/50 dark:bg-white/10 border border-gray-200 dark:border-white/20 rounded-full pl-10 pr-4 text-sm focus:outline-none focus:border-blue-400 focus:bg-white dark:focus:bg-white/20 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 transition-all font-medium ${
+              className={`w-full bg-gray-50/50 dark:bg-white/10 border border-gray-200 dark:border-white/20 rounded-full pl-10 pr-4 text-sm focus:outline-none focus:border-[#E8734A] focus:bg-white dark:focus:bg-white/20 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 transition-all font-medium ${
                 isScrolled ? "py-2" : "py-2.5"
               }`}
             />
@@ -139,7 +140,7 @@ export default function Header() {
                 />
                 <div className="hidden lg:block text-left">
                   <p className="text-sm font-black text-gray-900 dark:text-white leading-none mb-0.5">{user?.name}</p>
-                  <p className="text-[10px] text-blue-600 font-bold uppercase tracking-wider">{t("auth.member") || "Member"}</p>
+                  <p className="text-[10px] text-[#E8734A] font-bold uppercase tracking-wider">{t("auth.member") || "Member"}</p>
                 </div>
               </Link>
               <button 

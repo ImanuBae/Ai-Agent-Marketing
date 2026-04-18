@@ -7,37 +7,24 @@ import {
   MessageSquare, 
   TrendingUp, 
   Calendar, 
-  BarChart3, 
-  User, 
-  ShieldCheck, 
-  LogOut,
+  Share2, 
   ChevronLeft,
   ChevronRight,
-  Link as LinkIcon,
-  ShieldAlert
+  Search
 } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
-import { useAuth } from "@/context/AuthContext";
 
 export default function DashboardSidebar() {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
-  const { user, isAdmin, logout } = useAuth();
 
   const menuItems = [
-    { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
-    { name: "Kết nối MXH", icon: LinkIcon, href: "/dashboard/connections" },
-    { name: "AI Chat", icon: MessageSquare, href: "/dashboard/content" },
-    { name: "Xu hướng", icon: TrendingUp, href: "/dashboard/trends" },
-    { name: "Lịch đăng bài", icon: Calendar, href: "/dashboard/schedule" },
-    { name: "Báo cáo", icon: BarChart3, href: "/dashboard/analytics" },
-  ];
-
-  const accountItems = [
-    { name: "Hồ sơ cá nhân", icon: User, href: "/dashboard/profile" },
-    { name: "Bảo mật", icon: ShieldCheck, href: "/dashboard/security" },
+    { name: "Tổng quan", icon: LayoutDashboard, href: "/dashboard" },
+    { name: "Content AI", icon: MessageSquare, href: "/dashboard/content" },
+    { name: "Market Trends", icon: TrendingUp, href: "/dashboard/trends" },
+    { name: "Lịch đăng", icon: Calendar, href: "/dashboard/schedule" },
+    { name: "Social Connect", icon: Share2, href: "/dashboard/social" },
   ];
 
   return (
@@ -56,7 +43,7 @@ export default function DashboardSidebar() {
               height={32} 
               className="h-8 w-auto logo-dark-fix" 
             />
-            <span className="font-black text-xl tracking-tight dark:text-white">Market<span className="text-blue-600">AI</span></span>
+            <span className="font-black text-xl tracking-tight dark:text-white">Market<span className="text-[#E8734A]">AI</span></span>
           </Link>
         )}
         <button 
@@ -67,11 +54,26 @@ export default function DashboardSidebar() {
         </button>
       </div>
 
-      <div className="flex-1 px-4 py-4 space-y-8 overflow-y-auto no-scrollbar">
+      <div className="flex-1 px-4 py-4 space-y-6 overflow-y-auto no-scrollbar">
+        {/* Search Bar Dummy */}
+        {!isCollapsed && (
+          <div className="relative group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input 
+              type="text" 
+              placeholder="Search" 
+              className="w-full bg-gray-50 dark:bg-slate-800 text-sm rounded-xl pl-9 pr-10 py-2.5 outline-none border border-transparent focus:bg-white focus:border-gray-200 focus:shadow-sm transition-all"
+            />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none">
+              <span className="text-[10px] font-medium text-gray-400 bg-white dark:bg-slate-700 px-1.5 py-0.5 rounded shadow-sm border border-gray-100 dark:border-white/5">⌘K</span>
+            </div>
+          </div>
+        )}
+
         {/* Main Menu */}
         <div>
           <p className={`text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4 px-2 ${isCollapsed ? "text-center" : ""}`}>
-            Menu chính
+            MAIN MENU
           </p>
           <div className="space-y-1">
             {menuItems.map((item) => {
@@ -80,95 +82,20 @@ export default function DashboardSidebar() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group ${
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group font-medium ${
                     isActive 
-                      ? "accent-gradient text-white shadow-md font-bold" 
+                      ? "bg-[#E8734A]/10 text-[#E8734A]" 
                       : "text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white"
                   }`}
                   title={isCollapsed ? item.name : ""}
                 >
-                  <item.icon size={20} className={isActive ? "text-white" : "group-hover:scale-110 transition-transform"} />
+                  <item.icon size={20} className={isActive ? "text-[#E8734A]" : "text-gray-400 group-hover:scale-110 transition-transform"} />
                   {!isCollapsed && <span>{item.name}</span>}
                 </Link>
               );
             })}
           </div>
         </div>
-      </div>
-
-      <div className="p-4 border-t border-gray-200 dark:border-white/5 space-y-3 relative">
-        {isAccountMenuOpen && !isCollapsed && (
-          <div className="absolute bottom-full left-4 right-4 mb-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden p-2 z-50 animate-fade-up origin-bottom">
-            <div className="space-y-1">
-              {accountItems.map((item) => {
-                const isActive = pathname === item.href;
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-all text-sm font-semibold group ${
-                      isActive 
-                        ? "accent-gradient text-white" 
-                        : "text-gray-600 hover:bg-gray-100 dark:hover:bg-white/5 dark:text-gray-300"
-                    }`}
-                  >
-                    <item.icon size={16} className={isActive ? "text-white" : "text-gray-400 group-hover:text-blue-500 transition-colors"} />
-                    <span>{item.name}</span>
-                  </Link>
-                );
-              })}
-              {isAdmin && (
-                <Link
-                  href="/admin"
-                  className="flex items-center gap-3 px-3 py-2 rounded-xl transition-all text-sm font-bold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 group mt-1"
-                >
-                  <ShieldAlert size={16} className="text-blue-500 group-hover:scale-110 transition-transform" />
-                  <span>Quản trị hệ thống</span>
-                </Link>
-              )}
-            </div>
-            <div className="h-px bg-gray-200 dark:bg-white/10 my-1.5 mx-1" />
-            <button 
-              onClick={() => {
-                setIsAccountMenuOpen(false);
-                logout();
-              }}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all text-sm font-bold group"
-            >
-              <LogOut size={16} className="text-red-400 group-hover:translate-x-1 transition-transform" />
-              <span>Đăng xuất</span>
-            </button>
-          </div>
-        )}
-
-        {!isCollapsed && user && (
-          <div 
-            onClick={() => setIsAccountMenuOpen(!isAccountMenuOpen)}
-            className="p-3 bg-gray-50 dark:bg-white/5 rounded-2xl flex items-center gap-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 transition"
-          >
-            <Image 
-              src={user.avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=A"} 
-              alt="Avatar" 
-              width={40} 
-              height={40} 
-              className="w-10 h-10 rounded-full border-2 border-white shadow-sm" 
-            />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{user.name}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
-            </div>
-          </div>
-        )}
-
-        {isCollapsed && (
-          <button 
-            onClick={logout}
-            className="w-full flex items-center justify-center p-2 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all"
-            title="Đăng xuất"
-          >
-            <LogOut size={20} />
-          </button>
-        )}
       </div>
     </aside>
   );

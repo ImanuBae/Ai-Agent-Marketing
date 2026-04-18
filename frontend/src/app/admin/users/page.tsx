@@ -99,7 +99,7 @@ export default function AdminUsersPage() {
           <h1 className="text-3xl font-black text-white mb-2">Quản lý người dùng</h1>
           <p className="text-gray-400">Xem danh sách, phân quyền và quản lý trạng thái tài khoản.</p>
         </div>
-        <button className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-bold transition shadow-lg shadow-blue-600/20 active:scale-95">
+        <button className="flex items-center justify-center gap-2 px-6 py-3 accent-gradient hover:opacity-90 text-white rounded-2xl font-bold transition shadow-lg shadow-[#E8734A]/20 active:scale-95">
           <UserPlus size={20} />
           <span>Thêm người dùng</span>
         </button>
@@ -112,7 +112,7 @@ export default function AdminUsersPage() {
           <input 
             type="text" 
             placeholder="Tìm theo tên hoặc email..." 
-            className="w-full bg-white/5 border border-white/5 rounded-2xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:border-blue-500 transition-all text-white placeholder-gray-500"
+            className="w-full bg-white/5 border border-white/5 rounded-2xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:border-[#E8734A] transition-all text-white placeholder-gray-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -130,8 +130,8 @@ export default function AdminUsersPage() {
         {isLoading && (
           <div className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-3xl">
             <div className="flex flex-col items-center gap-3">
-              <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />
-              <p className="text-blue-400 font-bold animate-pulse text-sm">Đang đồng bộ dữ liệu...</p>
+              <Loader2 className="w-10 h-10 text-[#E8734A] animate-spin" />
+              <p className="text-[#E8734A] font-bold animate-pulse text-sm">Đang đồng bộ dữ liệu...</p>
             </div>
           </div>
         )}
@@ -158,10 +158,10 @@ export default function AdminUsersPage() {
                           alt={user.name} 
                           width={44} 
                           height={44} 
-                          className="rounded-full ring-2 ring-white/10 group-hover:ring-blue-500/50 transition-all"
+                          className="rounded-full ring-2 ring-white/10 group-hover:ring-[#E8734A]/50 transition-all"
                         />
                         <div>
-                          <p className="font-bold text-white group-hover:text-blue-400 transition-colors uppercase tracking-tight">{user.name}</p>
+                          <p className="font-bold text-white group-hover:text-[#E8734A] transition-colors uppercase tracking-tight">{user.name}</p>
                           <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
                             <Mail size={12} />
                             {user.email}
@@ -172,7 +172,7 @@ export default function AdminUsersPage() {
                     <td className="px-6 py-5">
                       <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold border ${
                         user.role === "ADMIN" 
-                          ? "bg-blue-500/10 text-blue-400 border-blue-500/20" 
+                          ? "bg-[#E8734A]/10 text-[#E8734A] border-[#E8734A]/20" 
                           : "bg-slate-500/10 text-slate-400 border-slate-500/20"
                       }`}>
                         <Shield size={10} />
@@ -241,7 +241,7 @@ export default function AdminUsersPage() {
                   key={n} 
                   onClick={() => fetchUsers(n, searchTerm)}
                   className={`w-8 h-8 rounded-lg text-xs font-bold transition flex items-center justify-center ${
-                    n === pagination.page ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" : "hover:bg-white/10 text-gray-400"
+                    n === pagination.page ? "accent-gradient text-white shadow-lg shadow-[#E8734A]/20" : "hover:bg-white/10 text-gray-400"
                   }`}
                 >
                   {n}

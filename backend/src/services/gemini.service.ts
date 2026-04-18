@@ -129,11 +129,11 @@ const callWithRetry = async <T>(
             `Vui lòng quay lại sau ngày mai.`
           );
         }
-        
+
         const result = await fn();
         requestCount++;
         console.log(`📊 Gemini API call used (${requestCount}/${DAILY_QUOTA_LIMIT})`);
-        
+
         if (cacheKey) {
           setCache(cacheKey, JSON.stringify(result));
         }
@@ -143,7 +143,7 @@ const callWithRetry = async <T>(
       }
     } catch (error: any) {
       lastError = error;
-      
+
       // 🔴 Log chi tiết error để debug
       console.error('❌ Gemini API Error:', {
         status: error?.response?.status,
@@ -335,6 +335,33 @@ Trả lời bằng tiếng Việt, ngắn gọn và thực tế.
   );
 };
 
+// ── CHAT VỚI AI ──────────────────────────────────────────────
+export const chatWithAI = async (
+  message: string,
+  history?: { sender: string; text: string }[]
+): Promise<string> => {
+
+  const prompt = `
+Bạn là MarketAI - Chuyên gia Marketing AI người Việt Nam. 
+Nhiệm vụ của bạn là hỗ trợ người dùng về các chiến lược marketing, quảng cáo, viết bài và phân tích dữ liệu.
+
+Lịch sử trò chuyện:
+${history?.map((h) => `${h.sender === 'user' ? 'Người dùng' : 'MarketAI'}: ${h.text}`).join('\n') || '(chưa có)'}
+
+Người dùng: ${message}
+
+Hãy trả lời một cách chuyên nghiệp, sáng tạo và hữu ích. Nếu người dùng yêu cầu tạo content, hãy đưa ra gợi ý caption hoặc hashtag phù hợp.
+  `.trim();
+
+  return callWithRetry(
+    async () => {
+      const result = await model.generateContent(prompt);
+      return result.response.text();
+    },
+    getCacheKey([message, JSON.stringify(history?.slice(-5))])
+  );
+};
+
 // ── KIỂM TRA QUOTA CÒN LẠI ──────────────────────────────────
 export const getQuotaStatus = () => {
   return {
@@ -351,10 +378,10 @@ export const testGeminiAPI = async () => {
     console.log('🧪 Testing Gemini API...');
     console.log('API Key exists:', !!process.env.GEMINI_API_KEY);
     console.log('Model name:', 'gemini-2.0-flash');
-    
+
     const result = await model.generateContent('Say hello in one word');
     const response = result.response.text();
-    
+
     console.log('✅ Gemini API test SUCCESS:', response);
     return { success: true, response };
   } catch (error: any) {

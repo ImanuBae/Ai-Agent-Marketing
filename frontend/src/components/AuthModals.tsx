@@ -62,7 +62,7 @@ export default function AuthModals({ isOpen, onClose, type: initialType }: AuthM
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("auth.fullname")}</label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input type="text" placeholder={t("auth.fullname_placeholder")} className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-white" />
+                <input type="text" placeholder={t("auth.fullname_placeholder")} className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#E8734A]/20 focus:border-[#E8734A] transition-all dark:text-white" />
               </div>
             </div>
           )}
@@ -71,7 +71,7 @@ export default function AuthModals({ isOpen, onClose, type: initialType }: AuthM
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("auth.email")}</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input type="email" placeholder="name@company.com" className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-white" />
+              <input type="email" placeholder="name@company.com" className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#E8734A]/20 focus:border-[#E8734A] transition-all dark:text-white" />
             </div>
           </div>
 
@@ -79,11 +79,11 @@ export default function AuthModals({ isOpen, onClose, type: initialType }: AuthM
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("auth.password")}</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input type="password" placeholder="••••••••" className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-white" />
+              <input type="password" placeholder="••••••••" className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#E8734A]/20 focus:border-[#E8734A] transition-all dark:text-white" />
             </div>
             {type === "login" && (
               <div className="flex justify-end mt-1.5">
-                <a href="#" className="text-xs text-blue-600 hover:text-blue-700 font-medium">{t("auth.forgot_password")}</a>
+                <a href="#" className="text-xs text-[#E8734A] hover:text-[#D4623C] font-medium">{t("auth.forgot_password")}</a>
               </div>
             )}
           </div>
@@ -114,7 +114,7 @@ export default function AuthModals({ isOpen, onClose, type: initialType }: AuthM
           {type === "login" ? t("auth.no_account") : t("auth.have_account")}{" "}
           <button 
             onClick={() => setType(type === "login" ? "register" : "login")}
-            className="text-blue-600 font-semibold hover:text-blue-700 bg-transparent"
+            className="text-[#E8734A] font-semibold hover:text-[#D4623C] bg-transparent"
           >
             {type === "login" ? t("auth.register_link") : t("auth.login_link")}
           </button>

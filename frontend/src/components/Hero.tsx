@@ -1,101 +1,156 @@
 "use client";
 
-import { ArrowRight, Play } from "lucide-react";
-import { useEffect, useState } from "react";
 import { useTranslation } from "@/i18n/LanguageContext";
+import { Sparkles, ArrowRight, TrendingUp, FileText, Calendar } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 export default function Hero() {
   const { t } = useTranslation();
-  const [mounted, setMounted] = useState(false);
-  const [bars, setBars] = useState<number[]>(new Array(20).fill(10));
-
-  useEffect(() => {
-    setMounted(true);
-    // Set initial random values after mount to avoid hydration error
-    setBars(Array.from({ length: 20 }, () => 30 + Math.random() * 40));
-
-    // Animate bars regularly
-    const interval = setInterval(() => {
-      setBars(Array.from({ length: 20 }, () => 30 + Math.random() * 60));
-    }, 1500);
-    
-    return () => clearInterval(interval);
-  }, []);
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
 
   return (
-    <div id="home" className="relative pt-12 pb-8 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto mt-8">
-      {/* Decorative background blobs */}
-      <div className="mesh-blob w-72 h-72 bg-blue-500/10 -top-20 -left-20 animate-pulse"></div>
-      <div className="mesh-blob w-96 h-96 bg-purple-500/10 -bottom-20 -right-20"></div>
+    <div id="home" className="relative pt-8 pb-20 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto">
       
-      <section className="grid md:grid-cols-2 gap-12 lg:gap-16 items-center fade-up p-10 md:p-12 lg:p-16 rounded-[40px] relative overflow-hidden hero-banner min-h-[480px] shadow-2xl border border-white/5">
-        <div className="space-y-6">
-          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black leading-[1.1] tracking-tighter text-gray-900 dark:text-white uppercase transition-all">
-            {t("hero.title_part1")}<br />
-            <span className="text-accent-grad">{t("hero.title_part2")}</span>
+      {/* Background glow */}
+      <div className="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[#E8734A]/6 rounded-full blur-[120px] -z-10 pointer-events-none" />
+      <div className="absolute top-1/3 right-0 w-[400px] h-[400px] bg-blue-400/5 rounded-full blur-[100px] -z-10 pointer-events-none" />
+
+      <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center min-h-[75vh]">
+        
+        {/* Left: Text & CTA */}
+        <div className="flex flex-col justify-center fade-up">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-white/5 border border-[#E8734A]/30 dark:border-white/10 shadow-sm mb-8 text-sm font-semibold text-gray-700 dark:text-gray-300 w-fit">
+            <Sparkles className="w-4 h-4 text-[#E8734A]" />
+            {t("hero.badge") || "Bán hàng thông minh với AI"}
+          </div>
+
+          {/* Headline */}
+          <h1 className="text-5xl sm:text-6xl lg:text-6xl xl:text-7xl font-black leading-[1.08] tracking-tight text-gray-900 dark:text-white mb-6">
+            {t("hero.title_part1") || "AI Agent"}{" "}
+            <span className="relative">
+              <span className="text-accent-grad">
+                {t("hero.title_part2") || "Marketing Đa Kênh"}
+              </span>
+            </span>
+            <br className="hidden sm:block" />
+            {" "}& Xu hướng
           </h1>
-          <p className="text-gray-700 dark:text-gray-300 text-lg sm:text-xl max-w-lg leading-relaxed font-bold tracking-tight opacity-90">
-            {t("hero.subtitle")}
+
+          {/* Subtitle */}
+          <p className="text-gray-500 dark:text-gray-400 text-lg sm:text-xl max-w-xl leading-relaxed font-medium mb-10">
+            {t("hero.subtitle") || "Phân tích xu hướng thị trường thời gian thực, tối ưu chiến dịch bằng trí tuệ nhân tạo."}
           </p>
-          <div className="flex flex-wrap gap-5 pt-2">
-            <button className="accent-gradient px-10 py-4 rounded-full font-black text-white shadow-[0_10px_30_rgba(59,130,246,0.5)] transition-all flex items-center justify-center gap-3 text-base hover:scale-105 active:scale-95 uppercase tracking-widest">
-              {t("hero.start_now")} <ArrowRight className="w-5 h-5" />
+
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 items-start mb-12">
+            <button 
+              onClick={() => router.push(isAuthenticated ? "/dashboard" : "/login")}
+              className="accent-gradient px-8 py-3.5 rounded-xl font-bold text-white shadow-lg shadow-[#E8734A]/25 transition-all hover:scale-105 hover:shadow-xl hover:shadow-[#E8734A]/30 active:scale-95 flex items-center gap-2"
+            >
+              {t("hero.start_now") || "Bắt đầu miễn phí"} <ArrowRight size={18} />
             </button>
-            <button className="bg-white/80 dark:bg-white/5 backdrop-blur-md border border-gray-200 dark:border-white/10 text-gray-800 dark:text-gray-200 px-10 py-4 rounded-full font-black transition-all flex items-center justify-center gap-3 text-base hover:bg-white dark:hover:bg-white/10 hover:scale-105 active:scale-95 uppercase tracking-widest shadow-xl">
-              <Play className="w-5 h-5 fill-current opacity-80" /> {t("hero.view_demo")}
+            <button 
+              onClick={() => router.push(isAuthenticated ? "/dashboard" : "/login")}
+              className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-800 dark:text-white px-8 py-3.5 rounded-xl font-bold transition-all shadow-sm hover:bg-gray-50 dark:hover:bg-white/10 hover:scale-105 active:scale-95"
+            >
+              {t("hero.view_demo") || "Xem demo"}
             </button>
           </div>
-        </div>
 
-        <div className="relative animate-float pt-10 md:pt-0">
-          <div className="glass-card rounded-[48px] p-8 md:p-10 space-y-10 shadow-2xl relative z-10 border border-white/30 backdrop-blur-2xl bg-white/40 dark:bg-slate-900/40">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 text-[11px] font-black uppercase tracking-widest text-emerald-500">
-                <span className="flex h-3 w-3 relative">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-                </span>
-                {t("hero.ai_analyzing")}
-              </div>
-              <div className="text-[10px] text-gray-500 font-black tracking-widest uppercase opacity-60">Live v2.4</div>
-            </div>
-            
-            <div className="grid grid-cols-3 gap-6 text-center">
-              <div className="bg-white/60 dark:bg-white/5 rounded-3xl p-5 border border-white/40 dark:border-white/5 shadow-inner">
-                <div className="text-4xl font-black text-blue-600 dark:text-blue-400 tracking-tighter">89%</div>
-                <div className="text-[9px] text-gray-400 font-black uppercase tracking-widest mt-2">{t("hero.accuracy")}</div>
-              </div>
-              <div className="bg-white/60 dark:bg-white/5 rounded-3xl p-5 border border-white/40 dark:border-white/5 shadow-inner">
-                <div className="text-4xl font-black text-indigo-600 dark:text-indigo-400 tracking-tighter">2.4M</div>
-                <div className="text-[9px] text-gray-400 font-black uppercase tracking-widest mt-2">{t("hero.data")}</div>
-              </div>
-              <div className="bg-white/60 dark:bg-white/5 rounded-3xl p-5 border border-white/40 dark:border-white/5 shadow-inner">
-                <div className="text-4xl font-black text-emerald-600 dark:text-emerald-400 tracking-tighter">156</div>
-                <div className="text-[9px] text-gray-400 font-black uppercase tracking-widest mt-2">{t("hero.trends")}</div>
-              </div>
-            </div>
-
-            <div className="h-32 rounded-[24px] bg-white/80 dark:bg-black/40 flex items-end gap-2 px-6 pb-5 overflow-hidden border border-white/20 shadow-inner">
-              {mounted && bars.map((h, i) => (
-                <div
-                  key={i}
-                  className="rounded-t-lg flex-1 bg-sky-500/50 shadow-[0_-5px_15px_rgba(59,130,246,0.3)]"
-                  style={{ 
-                    height: `${h}%`, 
-                    transition: "height 0.8s ease-in-out",
-                    backgroundColor: `rgba(59,130,246,${0.3 + (i % 8) / 10})`
-                  }}
-                ></div>
+          {/* Social Proof */}
+          <div className="flex items-center gap-4">
+            <div className="flex -space-x-2.5">
+              {["E8734A", "3B82F6", "10B981", "8B5CF6"].map((color, i) => (
+                <div key={i} className="w-9 h-9 rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center text-white text-xs font-bold shadow-sm" style={{backgroundColor: `#${color}`}}>
+                  {["A","B","C","D"][i]}
+                </div>
               ))}
-              {!mounted && <div className="w-full h-full flex items-center justify-center text-gray-400 font-black uppercase tracking-widest text-[10px] animate-pulse">Initializing AI...</div>}
+            </div>
+            <div className="text-sm font-medium text-gray-600 dark:text-gray-400 leading-tight">
+              <span className="font-black text-gray-900 dark:text-white">1,200+</span> marketers<br />
+              tin dùng mỗi ngày
             </div>
           </div>
-          
-          {/* Decorative blobs */}
-          <div className="absolute -top-10 -right-10 w-48 h-48 bg-blue-500/20 rounded-full blur-[100px] -z-0"></div>
-          <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-purple-500/20 rounded-full blur-[100px] -z-0"></div>
         </div>
-      </section>
+
+        {/* Right: Product Mockup */}
+        <div className="relative flex items-center justify-center lg:py-12 fade-up">
+          
+          {/* Main Card — Dashboard Mockup */}
+          <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-[28px] shadow-2xl border border-gray-200 dark:border-white/10 p-5 overflow-hidden">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-[#E8734A]/10 blur-3xl rounded-full -z-0" />
+            
+            {/* Mac-style header */}
+            <div className="flex items-center justify-between mb-5 relative z-10">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
+                <div className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
+                <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
+              </div>
+              <div className="text-xs font-bold text-gray-400 bg-gray-100 dark:bg-white/5 px-3 py-1 rounded-full">Dashboard Tổng quan</div>
+              <div className="w-6 h-6 rounded-full bg-[#E8734A]/20 flex items-center justify-center">
+                <Sparkles size={12} className="text-[#E8734A]" />
+              </div>
+            </div>
+
+            {/* Stat Cards */}
+            <div className="grid grid-cols-3 gap-3 mb-4 relative z-10">
+              {[
+                { label: "Bài viết AI", value: "145", color: "text-blue-500", bg: "bg-blue-500/10", icon: FileText },
+                { label: "Lên lịch", value: "24", color: "text-amber-500", bg: "bg-amber-500/10", icon: Calendar },
+                { label: "Viral Score", value: "92%", color: "text-emerald-500", bg: "bg-emerald-500/10", icon: TrendingUp },
+              ].map((stat, i) => (
+                <div key={i} className="bg-gray-50 dark:bg-slate-800/80 rounded-2xl p-3 border border-gray-100 dark:border-white/5">
+                  <div className={`w-8 h-8 rounded-xl ${stat.bg} ${stat.color} flex items-center justify-center mb-2`}>
+                    <stat.icon size={14} />
+                  </div>
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400 font-medium">{stat.label}</p>
+                  <p className="text-lg font-black text-gray-900 dark:text-white">{stat.value}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Mini Bar Chart */}
+            <div className="bg-gray-50 dark:bg-slate-800/80 rounded-2xl p-3 mb-4 border border-gray-100 dark:border-white/5 relative z-10">
+              <p className="text-[11px] font-bold text-gray-500 dark:text-gray-400 mb-2">Hiệu suất 7 ngày</p>
+              <div className="flex items-end gap-1 h-14">
+                {[40, 65, 45, 80, 55, 90, 75].map((h, i) => (
+                  <div key={i} className="flex-1 flex flex-col justify-end gap-0.5 h-full">
+                    <div className="w-full rounded-t-sm bg-[#E8734A]" style={{ height: `${h}%` }} />
+                    <div className="w-full rounded-t-sm bg-emerald-400" style={{ height: `${Math.round(h * 0.4)}%` }} />
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-between mt-1.5">
+                {['T2','T3','T4','T5','T6','T7','CN'].map(d => (
+                  <span key={d} className="text-[9px] text-gray-400 flex-1 text-center">{d}</span>
+                ))}
+              </div>
+            </div>
+
+            {/* AI chip */}
+            <div className="flex items-center gap-2 bg-[#FDE8DF]/60 dark:bg-[#E8734A]/10 border border-[#E8734A]/20 rounded-2xl px-4 py-3 relative z-10">
+              <Sparkles size={16} className="text-[#E8734A] shrink-0" />
+              <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                <strong className="text-[#E8734A]">AI gợi ý:</strong> Đăng bài vào 19:30 tối nay để tăng 40% tương tác
+              </p>
+            </div>
+          </div>
+
+          {/* Floating chips */}
+          <div className="absolute -top-6 -right-2 sm:-right-6 bg-white dark:bg-slate-800 shadow-xl border border-gray-100 dark:border-white/10 rounded-2xl px-4 py-2.5 text-sm font-bold flex items-center gap-2 z-20">
+            <TrendingUp size={16} className="text-emerald-500" />
+            <span className="text-gray-900 dark:text-white text-xs">+120% từ khóa viral</span>
+          </div>
+          <div className="absolute -bottom-6 -left-2 sm:-left-6 bg-white dark:bg-slate-800 shadow-xl border border-gray-100 dark:border-white/10 rounded-2xl px-4 py-2.5 text-sm font-bold flex items-center gap-2 z-20">
+            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+            <span className="text-gray-900 dark:text-white text-xs">AI đang phân tích...</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,9 +1,6 @@
 import { Request, Response } from 'express';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { chatWithAI } from '../services/gemini.service';
 import { sendSuccess, sendError } from '../utils/response';
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
 export const handleChat = async (req: Request, res: Response) => {
   try {
@@ -13,21 +10,7 @@ export const handleChat = async (req: Request, res: Response) => {
       return sendError(res, 'Tin nhắn không được để trống', 400);
     }
 
-    const prompt = `
-Bạn là MarketAI - Chuyên gia Marketing AI người Việt Nam. 
-Nhiệm vụ của bạn là hỗ trợ người dùng về các chiến lược marketing, quảng cáo, viết bài và phân tích dữ liệu.
-
-Lịch sử trò chuyện:
-${history?.map((h: any) => `${h.sender === 'user' ? 'Người dùng' : 'MarketAI'}: ${h.text}`).join('\n')}
-
-Người dùng: ${message}
-
-Hãy trả lời một cách chuyên nghiệp, sáng tạo và hữu ích. Nếu người dùng yêu cầu tạo content, hãy đưa ra gợi ý caption hoặc hashtag phù hợp.
-`.trim();
-
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    const text = await chatWithAI(message, history);
 
     return sendSuccess(res, 'Thành công', { text });
   } catch (error) {

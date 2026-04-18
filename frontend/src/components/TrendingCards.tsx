@@ -16,13 +16,18 @@ export default function TrendingCards() {
 
   return (
     <section id="trends" className="fade-up fade-up-d2">
-      <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 dark:text-white">
-        <TrendingUp className="w-6 h-6 text-sky-400" /> {t("trends.title")}
-      </h2>
+      <div className="flex flex-col items-center text-center mb-10 fade-up">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white dark:bg-slate-800 border border-[#E8734A]/20 dark:border-white/10 shadow-sm text-xs font-bold text-gray-700 dark:text-gray-300 mb-4">
+          <TrendingUp className="w-4 h-4 text-[#E8734A]" /> {t("trends.badge") || "Trending Now"}
+        </div>
+        <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+          {t("trends.title")}
+        </h2>
+      </div>
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {trends.map((t, i) => (
-          <div key={i} className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-white/10 rounded-xl p-5 card-glow transition-all duration-300 cursor-pointer">
-            <div className={`w-10 h-10 rounded-lg ${t.color} flex items-center justify-center mb-3`}>
+          <div key={i} className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-[24px] p-6 shadow-lg hover:shadow-xl card-glow transition-all duration-300 cursor-pointer">
+            <div className={`w-12 h-12 rounded-xl ${t.color} flex items-center justify-center mb-4 shadow-sm`}>
               <t.icon className="w-5 h-5" />
             </div>
             <div className="font-semibold mb-1 text-gray-900 dark:text-white">{t.title}</div>

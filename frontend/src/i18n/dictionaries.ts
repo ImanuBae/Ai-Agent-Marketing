@@ -12,6 +12,7 @@ export const dictionaries = {
       register: "Đăng ký",
     },
     hero: {
+      badge: "Bán hàng thông minh với AI",
       title_part1: "AI Agent",
       title_part2: "Marketing & Xu hướng",
       subtitle: "Phân tích xu hướng thị trường thời gian thực, tối ưu chiến dịch bằng trí tuệ nhân tạo.",
@@ -38,6 +39,7 @@ export const dictionaries = {
       history_summer: "Xu hướng mùa hè...",
     },
     analytics: {
+      badge: "Phân tích dữ liệu",
       title: "Phân tích & Thống kê",
       overview: "Tổng quan tương tác 12 tháng",
       organic: "Organic",
@@ -69,6 +71,7 @@ export const dictionaries = {
       }
     },
     trends: {
+      badge: "Xu hướng thị trường",
       title: "Xu hướng nổi bật",
       items: [
         { title: "E-commerce Live", desc: "Chưa có dữ liệu tăng trưởng" },
@@ -104,14 +107,37 @@ export const dictionaries = {
       member: "Thành viên"
     },
     footer: {
-      description: "AI Agent hỗ trợ marketing và phân tích xu hướng thị trường theo thời gian thực.",
-      links: "Liên kết",
+      description: "MarketAI là nền tảng AI thông minh phân tích xu hướng và thị trường chuyên biệt cho doanh nghiệp.",
+      links: "Liên kết nhanh",
+      api: "API & Tích hợp",
+      company: "Công ty",
+      about: "Về chúng tôi",
+      careers: "Tuyển dụng",
       contact: "Liên hệ",
+      blog: "Blog",
+
+      product: "Sản phẩm",
       features: "Tính năng",
       pricing: "Bảng giá",
-      blog: "Blog",
-      api: "API",
-      rights: "© 2024 MarketAI. All rights reserved.",
+      use_case: "Giải pháp",
+      integrations: "Tích hợp",
+      faq: "FAQ",
+
+      community: "Cộng đồng",
+      seller_stories: "Câu chuyện KH",
+      events: "Sự kiện",
+      testimonials: "Đánh giá",
+      forums: "Diễn đàn",
+
+      social: "Mạng xã hội",
+      instagram: "Instagram",
+      linkedin: "LinkedIn",
+      twitter: "X (Twitter)",
+      youtube: "Youtube",
+
+      rights: "© 2026 MarketAI. Đã đăng ký bản quyền.",
+      privacy: "Chính sách bảo mật",
+      terms: "Điều khoản dịch vụ"
     }
   },
   en: {
@@ -127,6 +153,7 @@ export const dictionaries = {
       register: "Register",
     },
     hero: {
+      badge: "Smarter Selling with AI",
       title_part1: "AI Agent",
       title_part2: "Marketing & Trends",
       subtitle: "Real-time market trend analysis, optimizing campaigns with artificial intelligence.",
@@ -153,6 +180,7 @@ export const dictionaries = {
       history_summer: "Summer trends...",
     },
     analytics: {
+      badge: "Data Insights",
       title: "Analytics & Statistics",
       overview: "12-Month Engagement Overview",
       organic: "Organic",
@@ -184,6 +212,7 @@ export const dictionaries = {
       }
     },
     trends: {
+      badge: "Market Trends",
       title: "Trending Highlights",
       items: [
         { title: "E-commerce Live", desc: "No growth data yet" },
@@ -219,14 +248,37 @@ export const dictionaries = {
       member: "Member"
     },
     footer: {
-      description: "AI Agent supporting marketing and real-time market trend analysis.",
-      links: "Links",
+      description: "MarketAI is a smart AI platform analyzing trends and markets specifically for businesses.",
+      links: "Quick Links",
+      api: "API & Integrations",
+      company: "Company",
+      about: "About Us",
+      careers: "Careers",
       contact: "Contact",
+      blog: "Blog",
+
+      product: "Product",
       features: "Features",
       pricing: "Pricing",
-      blog: "Blog",
-      api: "API",
-      rights: "© 2024 MarketAI. All rights reserved.",
+      use_case: "Use Case",
+      integrations: "Integrations",
+      faq: "FAQ",
+
+      community: "Community",
+      seller_stories: "Seller Stories",
+      events: "Events",
+      testimonials: "Testimonials",
+      forums: "Forums",
+
+      social: "Social",
+      instagram: "Instagram",
+      linkedin: "LinkedIn",
+      twitter: "X (Twitter)",
+      youtube: "Youtube",
+
+      rights: "© 2026 MarketAI. All rights reserved.",
+      privacy: "Privacy Policy",
+      terms: "Terms of Service"
     }
   }
 };

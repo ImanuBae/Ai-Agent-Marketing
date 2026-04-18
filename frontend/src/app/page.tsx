@@ -7,6 +7,8 @@ import AIChat from "@/components/AIChat";
 import TrendingCards from "@/components/TrendingCards";
 import CategoryTags from "@/components/CategoryTags";
 import Analytics from "@/components/Analytics";
+import Features from "@/components/Features";
+import Pricing from "@/components/Pricing";
 import CTASwiper from "@/components/CTASwiper";
 import Footer from "@/components/layout/Footer";
 import AuthModals from "@/components/AuthModals";
@@ -27,6 +29,8 @@ export default function Home() {
         <TrendingCards />
         <CategoryTags />
         <Analytics />
+        <Features />
+        <Pricing />
         <CTASwiper />
       </main>
 
