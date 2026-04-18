@@ -37,7 +37,7 @@ export default function AIChat() {
       // Prepare history for AI context
       const history = allMessages.slice(-10); // Last 10 messages for context
 
-      const response = await api.post("/chat", {
+      const response = await api.post("chat", {
         message: textToSend,
         history: history,
       });
