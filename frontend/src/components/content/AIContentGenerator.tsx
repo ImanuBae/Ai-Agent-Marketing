@@ -53,7 +53,7 @@ export default function AIContentGenerator() {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.post("/content/generate", {
+      const response = await api.post("content/generate", {
         brief,
         platform,
         tone,

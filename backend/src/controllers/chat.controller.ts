@@ -2,6 +2,12 @@ import { Request, Response } from 'express';
 import { chatWithAI } from '../services/gemini.service';
 import { sendSuccess, sendError } from '../utils/response';
 
+<<<<<<< HEAD
+=======
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+>>>>>>> ecfbb4836e00948c26b03a5f1f7045bf30285fc6
 export const handleChat = async (req: Request, res: Response) => {
   try {
     const { message, history } = req.body;
