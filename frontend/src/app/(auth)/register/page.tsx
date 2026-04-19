@@ -47,8 +47,10 @@ export default function RegisterPage() {
 
     try {
       await register(form);
-    } catch {
-      setError("Đã xảy ra lỗi khi đăng ký. Vui lòng thử lại.");
+    } catch (error: any) {
+      // Extract error message from backend response
+      const errorMessage = error?.response?.data?.message || error?.message || "Đã xảy ra lỗi khi đăng ký. Vui lòng thử lại.";
+      setError(errorMessage);
     }
   };
 
