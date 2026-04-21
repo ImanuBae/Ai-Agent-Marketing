@@ -1,170 +1,170 @@
-# AI Marketing Agent - Hướng dẫn Phát triển & Cấu trúc dự án
+# AI Marketing Agent - Developer Guide & Project Structure
 
-Tài liệu này tóm tắt toàn bộ cấu trúc dự án và các lưu ý quan trọng khi phát triển.
+This document covers the complete project structure and important notes for development.
 
 ---
 
-## 1. Cách khởi chạy dự án
+## 1. Getting Started
 
 ### Backend (Express + Prisma)
-1. Mở terminal tại thư mục `backend`.
-2. Chạy lệnh: `npm install` (nếu là lần đầu).
-3. Tạo file `.env` dựa trên `.env.example` và điền thông tin Database, JWT Secret.
-4. Chạy lệnh: `npx prisma db push` (tạo bảng trong Database).
-5. Chạy lệnh: `npm run dev`.
-6. Backend chạy tại: `http://localhost:5000`.
-7. API Docs (Swagger): `http://localhost:5000/api/docs`.
+1. Navigate to the `backend` folder in your terminal.
+2. Run `npm install` (first time only).
+3. Create a `.env` file based on `.env.example` and fill in your Database connection and JWT Secret.
+4. Run `npx prisma db push` to set up your database tables.
+5. Run `npm run dev` to start the development server.
+6. Backend will be available at: `http://localhost:5000`
+7. API Documentation (Swagger): `http://localhost:5000/api/docs`
 
 ### Frontend (Next.js)
-1. Mở terminal tại thư mục `frontend`.
-2. Chạy lệnh: `npm install` (nếu là lần đầu).
-3. Chạy lệnh: `npm run dev`.
-4. Mở trình duyệt: `http://localhost:3000`.
+1. Navigate to the `frontend` folder in your terminal.
+2. Run `npm install` (first time only).
+3. Run `npm run dev` to start the development server.
+4. Open your browser to: `http://localhost:3000`
 
-> **Lưu ý:** Cần bật Backend trước khi dùng Frontend để các tính năng đăng nhập/đăng ký hoạt động.
+> **Important:** Make sure the backend is running before using the frontend, otherwise authentication features won't work.
 
 ---
 
-## 2. Cấu trúc thư mục Frontend
+## 2. Frontend Directory Structure
 
-### 2.1. Thư mục gốc `frontend/`
+### 2.1. Root `frontend/` Directory
 
-| File/Thư mục | Nhiệm vụ |
+| File/Folder | Purpose |
 |---|---|
-| `.env.local` | Biến môi trường — chứa URL API backend (`NEXT_PUBLIC_API_URL`) |
-| `next.config.ts` | Cấu hình Next.js (cho phép SVG, remote images từ dicebear, svgrepo) |
-| `package.json` | Danh sách thư viện (dependencies) |
-| `tsconfig.json` | Cấu hình TypeScript |
-| `public/` | Ảnh tĩnh (logo, banner, swiper) |
-| `src/` | **Toàn bộ mã nguồn chính** |
+| `.env.local` | Environment variables — contains backend API URL (`NEXT_PUBLIC_API_URL`) |
+| `next.config.ts` | Next.js configuration (SVG support, remote images from dicebear, svgrepo) |
+| `package.json` | Project dependencies |
+| `tsconfig.json` | TypeScript configuration |
+| `public/` | Static assets (logo, banner, swiper images) |
+| `src/` | **Main source code** |
 
-### 2.2. `src/app/` — Các trang (Pages / Routes)
+### 2.2. `src/app/` — Pages & Routes
 
-#### File gốc
-| File | Nhiệm vụ |
+#### Root Files
+| File | Purpose |
 |---|---|
-| `layout.tsx` | Layout chính toàn app (bọc AuthProvider, LanguageProvider) |
-| `page.tsx` | **Trang chủ** — Landing Page giới thiệu sản phẩm |
-| `globals.css` | CSS toàn cục + cấu hình TailwindCSS |
-| `favicon.ico` | Icon hiển thị trên tab trình duyệt |
+| `layout.tsx` | Main app layout (wraps AuthProvider, LanguageProvider) |
+| `page.tsx` | **Home page** — Landing Page |
+| `globals.css` | Global CSS + TailwindCSS configuration |
+| `favicon.ico` | Browser tab icon |
 
-#### `src/app/(auth)/` — Nhóm trang Xác thực
-| Thư mục | Nhiệm vụ | Trạng thái |
+#### `src/app/(auth)/` — Authentication Pages
+| Folder | Purpose | Status |
 |---|---|---|
-| `login/page.tsx` | Trang **Đăng nhập** | ✅ Đã kết nối API |
-| `register/page.tsx` | Trang **Đăng ký** | ✅ Đã kết nối API |
-| `forgot-password/page.tsx` | Trang **Quên mật khẩu** | ⚠️ Cần kiểm tra kết nối API |
-| `reset-password/page.tsx` | Trang **Đặt lại mật khẩu** (từ email) | ⚠️ Cần kiểm tra kết nối API |
+| `login/page.tsx` | **Login page** | ✅ Connected to API |
+| `register/page.tsx` | **Registration page** | ✅ Connected to API |
+| `forgot-password/page.tsx` | **Forgot password page** | ⚠️ Needs API verification |
+| `reset-password/page.tsx` | **Reset password page** (from email link) | ⚠️ Needs API verification |
 
-#### `src/app/dashboard/` — Nhóm trang Dashboard (sau khi đăng nhập)
-| File/Thư mục | Nhiệm vụ | Trạng thái |
+#### `src/app/dashboard/` — Dashboard Pages (after login)
+| File/Folder | Purpose | Status |
 |---|---|---|
-| `layout.tsx` | Layout Dashboard (có Sidebar bên trái) | ✅ Hoàn chỉnh |
-| `page.tsx` | **Trang tổng quan** — Thống kê, biểu đồ | ✅ Hoàn chỉnh |
-| `connections/page.tsx` | **Kết nối MXH** — Facebook, Instagram, TikTok... | ⚠️ Còn mock data |
-| `content/page.tsx` | **AI Chat** — Tạo nội dung bằng AI | ⚠️ Cần kiểm tra |
-| `trends/page.tsx` | **Xu hướng** — Phân tích xu hướng thị trường | ⚠️ Cần kiểm tra |
-| `schedule/page.tsx` | **Lịch đăng bài** — Quản lý lịch đăng nội dung | ⚠️ Cần kiểm tra |
-| `analytics/page.tsx` | **Báo cáo** — Phân tích hiệu suất | ❌ File trống, chưa phát triển |
-| `profile/page.tsx` | **Hồ sơ cá nhân** — Quản lý thông tin user | ✅ Đã kết nối API |
-| `security/page.tsx` | **Bảo mật** — Đổi mật khẩu | ✅ Đã kết nối API |
+| `layout.tsx` | Dashboard layout (left sidebar) | ✅ Complete |
+| `page.tsx` | **Dashboard overview** — Stats & charts | ✅ Complete |
+| `connections/page.tsx` | **Social connections** — Facebook, Instagram, TikTok... | ⚠️ Using mock data |
+| `content/page.tsx` | **AI Content Generator** — Create content with AI | ⚠️ Needs verification |
+| `trends/page.tsx` | **Trends** — Market trend analysis | ⚠️ Needs verification |
+| `schedule/page.tsx` | **Schedule** — Manage content posting schedule | ⚠️ Needs verification |
+| `analytics/page.tsx` | **Analytics** — Performance reports | ❌ Empty, not yet developed |
+| `profile/page.tsx` | **Profile** — User account settings | ✅ Connected to API |
+| `security/page.tsx` | **Security** — Change password | ✅ Connected to API |
 
-### 2.3. `src/components/` — Các component tái sử dụng
+### 2.3. `src/components/` — Reusable Components
 
-#### Component trang chủ (Landing Page)
-| File | Nhiệm vụ |
+#### Landing Page Components
+| File | Purpose |
 |---|---|
-| `Hero.tsx` | Banner chính trang chủ |
-| `CTASwiper.tsx` | Carousel CTA (dùng Swiper.js) |
-| `CategoryTags.tsx` | Danh mục / Tag lĩnh vực |
-| `TrendingCards.tsx` | Card hiển thị xu hướng nổi bật |
-| `AIChat.tsx` | Giao diện AI Chat demo trên trang chủ |
-| `Analytics.tsx` | Phần giới thiệu tính năng phân tích |
-| `AuthModals.tsx` | Modal đăng nhập/đăng ký (popup) |
+| `Hero.tsx` | Main hero banner |
+| `CTASwiper.tsx` | CTA carousel (using Swiper.js) |
+| `CategoryTags.tsx` | Category/Topic tags |
+| `TrendingCards.tsx` | Trending content cards |
+| `AIChat.tsx` | AI Chat demo interface on landing page |
+| `Analytics.tsx` | Analytics features showcase |
+| `AuthModals.tsx` | Login/Register modals (popup) |
 
-#### `components/layout/` — Layout chung
-| File | Nhiệm vụ |
+#### `components/layout/` — Layout Components
+| File | Purpose |
 |---|---|
-| `Header.tsx` | Header / Navbar trang chủ |
-| `Footer.tsx` | Footer trang chủ |
-| `Sidebar.tsx` | Sidebar trang chủ (nếu có) |
-| `DashboardSidebar.tsx` | Sidebar Dashboard — menu điều hướng bên trái |
+| `Header.tsx` | Header / Navbar on landing page |
+| `Footer.tsx` | Footer on landing page |
+| `Sidebar.tsx` | Landing page sidebar (if needed) |
+| `DashboardSidebar.tsx` | Dashboard sidebar — left navigation menu |
 
-#### `components/content/` — Component nội dung
-| File | Nhiệm vụ |
+#### `components/content/` — Content Components
+| File | Purpose |
 |---|---|
-| `AIContentGenerator.tsx` | Giao diện tạo nội dung bằng AI |
+| `AIContentGenerator.tsx` | AI content generation interface |
 
-#### `components/dashboard/` — Component Dashboard
-| File | Nhiệm vụ |
+#### `components/dashboard/` — Dashboard Components
+| File | Purpose |
 |---|---|
-| `StatsCard.tsx` | Card hiển thị số liệu thống kê |
-| `TrendChart.tsx` | Biểu đồ xu hướng (dùng thư viện Recharts) |
+| `StatsCard.tsx` | Statistics card component |
+| `TrendChart.tsx` | Trend chart (using Recharts) |
 
-#### `components/ui/` — Component UI cơ bản
-> Thư mục trống — đã xóa `button.tsx` (không sử dụng).
+#### `components/ui/` — Base UI Components
+> Currently empty — removed `button.tsx` (not in use).
 
-### 2.4. `src/context/` — React Context (State toàn cục)
-| File | Nhiệm vụ |
+### 2.4. `src/context/` — React Context (Global State)
+| File | Purpose |
 |---|---|
-| `AuthContext.tsx` | Quản lý đăng nhập / đăng ký / đăng xuất / đổi mật khẩu. **Đã kết nối API backend qua Axios.** |
+| `AuthContext.tsx` | Manages login/registration/logout/password change. **Connected to backend API via Axios.** |
 
-### 2.5. `src/i18n/` — Đa ngôn ngữ
-| File | Nhiệm vụ |
+### 2.5. `src/i18n/` — Multi-language Support
+| File | Purpose |
 |---|---|
-| `LanguageContext.tsx` | Context quản lý ngôn ngữ hiện tại (VI / EN) |
-| `dictionaries.ts` | Từ điển dịch thuật — chứa text tiếng Việt & tiếng Anh |
+| `LanguageContext.tsx` | Context for managing current language (VI / EN) |
+| `dictionaries.ts` | Translation dictionary — contains Vietnamese & English text |
 
-### 2.6. `src/lib/` — Thư viện tiện ích
-| File | Nhiệm vụ |
+### 2.6. `src/lib/` — Utility Libraries
+| File | Purpose |
 |---|---|
-| `axios.ts` | Instance Axios đã cấu hình sẵn — gọi API backend (`baseURL`, `withCredentials`, `Authorization`) |
+| `axios.ts` | Pre-configured Axios instance — calls backend API (`baseURL`, `withCredentials`, `Authorization`) |
 
-### 2.7. `src/types/` — Định nghĩa kiểu TypeScript
-| File | Nhiệm vụ |
+### 2.7. `src/types/` — TypeScript Definitions
+| File | Purpose |
 |---|---|
-| `index.ts` | Định nghĩa các interface / type dùng chung trong project |
+| `index.ts` | Common interfaces and types used throughout the project |
 
-### 2.8. `public/` — Tài nguyên tĩnh
-| File | Nhiệm vụ |
+### 2.8. `public/` — Static Assets
+| File | Purpose |
 |---|---|
-| `ChatGPT Image...png` | Logo dự án |
-| `banner.jpg` | Ảnh banner trang chủ |
-| `swiper1/2/3.jpg` | Ảnh cho carousel CTA |
-| `file.svg`, `globe.svg`, `next.svg`, `vercel.svg`, `window.svg` | Icon mặc định của Next.js (có thể xóa nếu không dùng) |
+| `ChatGPT Image...png` | Project logo |
+| `banner.jpg` | Landing page banner |
+| `swiper1/2/3.jpg` | Images for CTA carousel |
+| `file.svg`, `globe.svg`, `next.svg`, `vercel.svg`, `window.svg` | Default Next.js icons (can be deleted if unused) |
 
 ---
 
 ## 3. Backend API Endpoints
 
-| Method | Endpoint | Nhiệm vụ | Cần Auth? |
+| Method | Endpoint | Purpose | Auth Required? |
 |---|---|---|---|
-| POST | `/api/auth/register` | Đăng ký tài khoản | ❌ |
-| POST | `/api/auth/login` | Đăng nhập (trả JWT token) | ❌ |
-| GET | `/api/auth/me` | Lấy thông tin user đang đăng nhập | ✅ |
-| POST | `/api/auth/forgot-password` | Gửi email đặt lại mật khẩu | ❌ |
-| POST | `/api/auth/reset-password` | Đặt lại mật khẩu bằng token | ❌ |
-| PUT | `/api/auth/change-password` | Đổi mật khẩu (đang đăng nhập) | ✅ |
-| PUT | `/api/users/profile` | Cập nhật thông tin cá nhân | ✅ |
-| GET | `/api/users` | [ADMIN] Xem danh sách user | ✅ Admin |
-| GET | `/api/users/:id` | [ADMIN] Xem chi tiết 1 user | ✅ Admin |
-| PUT | `/api/users/:id/toggle-lock` | [ADMIN] Khóa/Mở khóa tài khoản | ✅ Admin |
-| PUT | `/api/users/:id/toggle-admin` | [ADMIN] Cấp/Thu hồi quyền Admin | ✅ Admin |
-| DELETE | `/api/users/:id` | [ADMIN] Xóa tài khoản | ✅ Admin |
+| POST | `/api/auth/register` | User registration | ❌ |
+| POST | `/api/auth/login` | User login (returns JWT token) | ❌ |
+| GET | `/api/auth/me` | Get current user info | ✅ |
+| POST | `/api/auth/forgot-password` | Send password reset email | ❌ |
+| POST | `/api/auth/reset-password` | Reset password with token | ❌ |
+| PUT | `/api/auth/change-password` | Change password (authenticated user) | ✅ |
+| PUT | `/api/users/profile` | Update user profile | ✅ |
+| GET | `/api/users` | [ADMIN] List all users | ✅ Admin |
+| GET | `/api/users/:id` | [ADMIN] Get user details | ✅ Admin |
+| PUT | `/api/users/:id/toggle-lock` | [ADMIN] Lock/unlock account | ✅ Admin |
+| PUT | `/api/users/:id/toggle-admin` | [ADMIN] Grant/revoke admin rights | ✅ Admin |
+| DELETE | `/api/users/:id` | [ADMIN] Delete user account | ✅ Admin |
 
 ---
 
-## 4. Những phần còn cần phát triển
+## 4. Features Still in Development
 
-| Tính năng | Vị trí | Ghi chú |
+| Feature | Location | Notes |
 |---|---|---|
-| Quên mật khẩu / Đặt lại mật khẩu | `(auth)/forgot-password`, `(auth)/reset-password` | Kiểm tra kết nối API `POST /api/auth/forgot-password` và `reset-password` |
-| Kết nối MXH | `dashboard/connections/page.tsx` | Xóa mock data, kết nối OAuth thực tế |
-| AI Chat / Tạo nội dung | `dashboard/content/page.tsx` | Kết nối API `POST /api/content` |
-| Xu hướng | `dashboard/trends/page.tsx` | Cần kiểm tra và kết nối API |
-| Lịch đăng bài | `dashboard/schedule/page.tsx` | Cần kiểm tra và kết nối API |
-| Báo cáo phân tích | `dashboard/analytics/page.tsx` | ❌ Chưa phát triển (file trống) |
+| Forgot Password / Reset Password | `(auth)/forgot-password`, `(auth)/reset-password` | Verify API connection for `POST /api/auth/forgot-password` and `reset-password` |
+| Social Media Connections | `dashboard/connections/page.tsx` | Remove mock data and implement real OAuth connections |
+| AI Chat / Content Generation | `dashboard/content/page.tsx` | Connect to `POST /api/content` API |
+| Trends | `dashboard/trends/page.tsx` | Verify and connect API |
+| Scheduling | `dashboard/schedule/page.tsx` | Verify and connect API |
+| Analytics Report | `dashboard/analytics/page.tsx` | ❌ Not yet developed (empty file) |
 
 ---
 
-*Tài liệu được cập nhật ngày 15/04/2026 bởi Antigravity AI Assistant.*
+*Last updated: April 21, 2026 by Antigravity AI Assistant.*
