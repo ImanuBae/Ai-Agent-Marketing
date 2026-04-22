@@ -51,7 +51,18 @@ app.get('/api/health', (_req: Request, res: Response) => {
   });
 });
 
-// TODO: Thêm routes ở đây sau
+import prisma from './utils/prisma';
+app.get('/api/public/stats', async (_req: Request, res: Response) => {
+  try {
+    const [totalUsers, totalPosts] = await Promise.all([
+      prisma.user.count(),
+      prisma.content.count(),
+    ]);
+    sendSuccess(res, 'Success', { totalUsers, totalPosts });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Lỗi server' });
+  }
+});
 
 // ── 404 Handler ────────────────────────────────────────────────
 app.use((_req: Request, res: Response) => {

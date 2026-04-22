@@ -10,7 +10,8 @@ import {
   Share2, 
   ChevronLeft,
   ChevronRight,
-  Search
+  Search,
+  Home
 } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
@@ -36,14 +37,9 @@ export default function DashboardSidebar() {
       <div className="p-6 flex items-center justify-between">
         {!isCollapsed && (
           <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <Image 
-              src="/ChatGPT Image Apr 6, 2026, 01_39_17 PM.png" 
-              alt="Logo" 
-              width={32} 
-              height={32} 
-              className="h-8 w-auto logo-dark-fix" 
-            />
-            <span className="font-black text-xl tracking-tight dark:text-white">Market<span className="text-[#E8734A]">AI</span></span>
+            <span className="text-[#E8734A] dark:text-white pb-1" style={{ fontFamily: '"Brush Script MT", cursive', fontSize: '28px' }}>
+              Imanu's Lab
+            </span>
           </Link>
         )}
         <button 
@@ -96,6 +92,17 @@ export default function DashboardSidebar() {
             })}
           </div>
         </div>
+      </div>
+
+      <div className="p-4 border-t border-gray-200 dark:border-white/5">
+        <Link
+          href="/"
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group font-medium text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-[#E8734A] dark:hover:text-[#E8734A]`}
+          title={isCollapsed ? "Về trang chính" : ""}
+        >
+          <Home size={20} className="text-gray-400 group-hover:text-[#E8734A] group-hover:scale-110 transition-all" />
+          {!isCollapsed && <span>Về trang chính</span>}
+        </Link>
       </div>
     </aside>
   );

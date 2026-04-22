@@ -23,7 +23,7 @@ export default function Analytics() {
   }, []);
 
   return (
-    <section id="analytics" className="fade-up fade-up-d4 pb-12">
+    <section id="analytics" className="fade-up fade-up-d4 pb-4">
       <div className="flex flex-col items-center text-center mb-10 fade-up">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white dark:bg-slate-800 border border-[#E8734A]/20 dark:border-white/10 shadow-sm text-xs font-bold text-gray-700 dark:text-gray-300 mb-4">
           <BarChart3 className="w-4 h-4 text-[#E8734A]" /> {t("analytics.badge") || "Data Insights"}

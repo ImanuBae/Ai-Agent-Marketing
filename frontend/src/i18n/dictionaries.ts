@@ -12,7 +12,7 @@ export const dictionaries = {
       register: "Đăng ký",
     },
     hero: {
-      badge: "Bán hàng thông minh với AI",
+      badge: "Phân tích xu hướng thông minh với AI",
       title_part1: "AI Agent",
       title_part2: "Marketing & Xu hướng",
       subtitle: "Phân tích xu hướng thị trường thời gian thực, tối ưu chiến dịch bằng trí tuệ nhân tạo.",
@@ -79,6 +79,57 @@ export const dictionaries = {
         { title: "Micro Influencer", desc: "ROI hiện tại ở mức 0" },
         { title: "Social Commerce", desc: "Đang thu thập dữ liệu MXH" }
       ]
+    },
+    features: {
+      badge: "Tính năng nổi bật",
+      title_part1: "Một nền tảng —",
+      title_part2: "Đầy đủ công cụ",
+      subtitle: "Từ viết content AI đến phân tích xu hướng và lên lịch đăng đa kênh — MarketAI là trợ lý marketing toàn diện của bạn.",
+      explore_all: "Khám phá tất cả tính năng",
+      items: [
+        { title: "Content AI Creator", desc: "Tạo caption, hashtag, bài viết cho Facebook, TikTok, LinkedIn chỉ trong vài giây với AI phân tích ngữ cảnh thị trường Việt Nam.", tags: ["Auto Caption", "Hashtag AI", "Multi-platform"] },
+        { title: "Market Trend Intelligence", desc: "Phát hiện từ khóa đang nổi, phân tích tốc độ tăng trưởng theo thời gian thực và nhận đề xuất chủ đề content tiềm năng viral.", tags: ["Realtime Keywords", "Sparkline Chart", "AI Topic Ideas"] },
+        { title: "Smart Schedule Planner", desc: "Lên lịch đăng bài đa kênh trên calendar view trực quan. AI gợi ý khung giờ vàng để tối đa hóa reach và engagement.", tags: ["Calendar View", "Golden Hours AI", "Multi-channel"] },
+        { title: "Performance Analytics", desc: "Biểu đồ tương tác 7 ngày, tỷ lệ chuyển đổi và Activity Feed cập nhật liên tục giúp bạn ra quyết định nhanh hơn.", tags: ["7-day Chart", "Realtime Feed", "Conversion Rate"] },
+        { title: "Social Connect Hub", desc: "Kết nối Facebook, TikTok, LinkedIn qua OAuth 2.0 bảo mật. Quản lý toàn bộ quyền truy cập và trạng thái kết nối trong một giao diện.", tags: ["OAuth 2.0", "Facebook", "TikTok"] },
+        { title: "AI Insight Engine", desc: "Engine AI phân tích hành vi người dùng, dự đoán xu hướng và đề xuất tối ưu chiến dịch theo từng ngành hàng và địa phương.", tags: ["AI Predictions", "Behavior Analysis", "Industry Specific"] },
+      ]
+    },
+    pricing: {
+      badge: "Bảng giá minh bạch",
+      title_part1: "Chọn gói",
+      title_part2: "phù hợp",
+      title_part3: "với bạn",
+      subtitle: "Không có phí ẩn. Hủy bất cứ lúc nào. Miễn phí 14 ngày cho gói Pro.",
+      popular: "PHỔ BIẾN NHẤT",
+      payment_note: "Thanh toán qua VNPay, MoMo, Visa, Mastercard • Hủy bất kỳ lúc nào • VAT đã bao gồm",
+      free: {
+        name: "Miễn phí",
+        price: "0đ",
+        period: "/tháng",
+        desc: "Lý tưởng để trải nghiệm sức mạnh của AI Marketing.",
+        cta: "Đăng ký miễn phí",
+        features: ["10 bài viết AI / tháng", "Phân tích xu hướng cơ bản", "1 kênh mạng xã hội", "Báo cáo hàng tuần", "Hỗ trợ qua email"],
+        missing: ["Lên lịch đăng bài", "Gợi ý giờ vàng AI", "API Integration"]
+      },
+      pro: {
+        name: "Pro",
+        price: "299.000đ",
+        period: "/tháng",
+        desc: "Cho cá nhân và team nhỏ muốn tăng tốc chiến dịch.",
+        cta: "Dùng thử 14 ngày",
+        features: ["200 bài viết AI / tháng", "Phân tích xu hướng Realtime", "5 kênh mạng xã hội", "Lên lịch đăng bài thông minh", "AI gợi ý giờ vàng", "Báo cáo chi tiết hàng ngày", "Hỗ trợ ưu tiên 24/7"],
+        missing: []
+      },
+      enterprise: {
+        name: "Enterprise",
+        price: "Liên hệ",
+        period: "",
+        desc: "Giải pháp toàn diện cho doanh nghiệp và agency lớn.",
+        cta: "Liên hệ tư vấn",
+        features: ["Không giới hạn bài viết AI", "Tích hợp API riêng (White-label)", "Không giới hạn kênh MXH", "Quản lý team & phân quyền", "SLA 99.9% Uptime", "Dedicated Account Manager", "Đào tạo nhân viên onsite"],
+        missing: []
+      }
     },
     cta: {
       items: [
@@ -220,6 +271,57 @@ export const dictionaries = {
         { title: "Micro Influencer", desc: "Current ROI at 0" },
         { title: "Social Commerce", desc: "Collecting social data" }
       ]
+    },
+    features: {
+      badge: "Highlight Features",
+      title_part1: "One Platform —",
+      title_part2: "All Tools Included",
+      subtitle: "From AI content writing to trend analysis and multi-channel scheduling — MarketAI is your comprehensive marketing assistant.",
+      explore_all: "Explore all features",
+      items: [
+        { title: "Content AI Creator", desc: "Generate captions, hashtags, and posts for Facebook, TikTok, LinkedIn in seconds with context-aware AI.", tags: ["Auto Caption", "Hashtag AI", "Multi-platform"] },
+        { title: "Market Trend Intelligence", desc: "Detect trending keywords, analyze real-time growth, and get viral-potential topic suggestions.", tags: ["Realtime Keywords", "Sparkline Chart", "AI Topic Ideas"] },
+        { title: "Smart Schedule Planner", desc: "Schedule multi-channel posts on an intuitive calendar view. AI suggests golden hours to maximize reach and engagement.", tags: ["Calendar View", "Golden Hours AI", "Multi-channel"] },
+        { title: "Performance Analytics", desc: "7-day engagement charts, conversion rates, and a real-time Activity Feed help you make faster decisions.", tags: ["7-day Chart", "Realtime Feed", "Conversion Rate"] },
+        { title: "Social Connect Hub", desc: "Connect Facebook, TikTok, LinkedIn via secure OAuth 2.0. Manage all access rights and connection statuses in one interface.", tags: ["OAuth 2.0", "Facebook", "TikTok"] },
+        { title: "AI Insight Engine", desc: "AI Engine analyzes user behavior, predicts trends, and suggests campaign optimizations specific to industries and regions.", tags: ["AI Predictions", "Behavior Analysis", "Industry Specific"] },
+      ]
+    },
+    pricing: {
+      badge: "Transparent Pricing",
+      title_part1: "Choose the",
+      title_part2: "right plan",
+      title_part3: "for you",
+      subtitle: "No hidden fees. Cancel anytime. 14-day free trial for Pro.",
+      popular: "MOST POPULAR",
+      payment_note: "Payments via VNPay, MoMo, Visa, Mastercard • Cancel anytime • VAT included",
+      free: {
+        name: "Free",
+        price: "$0",
+        period: "/month",
+        desc: "Ideal for experiencing the power of AI Marketing.",
+        cta: "Sign up for free",
+        features: ["10 AI posts / month", "Basic trend analysis", "1 social channel", "Weekly reports", "Email support"],
+        missing: ["Post scheduling", "AI golden hour suggestions", "API Integration"]
+      },
+      pro: {
+        name: "Pro",
+        price: "$19",
+        period: "/month",
+        desc: "For individuals and small teams looking to accelerate campaigns.",
+        cta: "Start 14-day trial",
+        features: ["200 AI posts / month", "Real-time trend analysis", "5 social channels", "Smart post scheduling", "AI golden hour suggestions", "Detailed daily reports", "24/7 priority support"],
+        missing: []
+      },
+      enterprise: {
+        name: "Enterprise",
+        price: "Contact Us",
+        period: "",
+        desc: "Comprehensive solution for large enterprises and agencies.",
+        cta: "Contact Sales",
+        features: ["Unlimited AI posts", "Custom API integration (White-label)", "Unlimited social channels", "Team management & roles", "99.9% Uptime SLA", "Dedicated Account Manager", "Onsite staff training"],
+        missing: []
+      }
     },
     cta: {
       items: [

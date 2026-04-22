@@ -22,6 +22,7 @@ export default function ContentAIPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [result, setResult] = useState<ContentResult | null>(null);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [history, setHistory] = useState<ContentResult[]>([]);
   const outputRef = useRef<HTMLDivElement>(null);
@@ -267,9 +268,28 @@ export default function ContentAIPage() {
             {/* Footer Actions */}
             {result && (
               <div className="p-4 border-t border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02] flex items-center justify-between">
-                <button className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition">
-                  <ImageIcon size={16} /> Đính kèm ảnh
-                </button>
+                <div className="relative flex items-center">
+                  <input 
+                    type="file" 
+                    id="imageUpload" 
+                    className="hidden" 
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files.length > 0) {
+                        setSelectedImage(e.target.files[0]);
+                      }
+                    }}
+                  />
+                  <label 
+                    htmlFor="imageUpload" 
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition cursor-pointer"
+                  >
+                    <ImageIcon size={16} className={selectedImage ? "text-emerald-500" : ""} /> 
+                    {selectedImage ? (
+                      <span className="text-emerald-500">{selectedImage.name.substring(0, 15)}{selectedImage.name.length > 15 ? '...' : ''}</span>
+                    ) : "Đính kèm ảnh"}
+                  </label>
+                </div>
                 <button className="flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-gray-200 text-white text-sm font-bold rounded-xl transition shadow-md">
                   <Send size={16} /> Lên lịch đăng
                 </button>

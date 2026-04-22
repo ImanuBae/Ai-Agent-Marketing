@@ -29,6 +29,7 @@ interface User {
 
 export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState<"ALL" | "ADMIN" | "USER">("ALL");
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [pagination, setPagination] = useState({
@@ -38,10 +39,11 @@ export default function AdminUsersPage() {
     totalPages: 0
   });
 
-  const fetchUsers = useCallback(async (page = 1, search = "") => {
+  const fetchUsers = useCallback(async (page = 1, search = "", role = "ALL") => {
     setIsLoading(true);
     try {
-      const response = await api.get(`/users?page=${page}&limit=10&search=${search}`);
+      const roleParam = role !== "ALL" ? `&role=${role}` : "";
+      const response = await api.get(`/users?page=${page}&limit=10&search=${search}${roleParam}`);
       if (response.data?.success) {
         setUsers(response.data.data.users);
         setPagination(response.data.data.pagination);
@@ -56,18 +58,18 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      fetchUsers(1, searchTerm);
+      fetchUsers(1, searchTerm, roleFilter);
     }, 500);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm, fetchUsers]);
+  }, [searchTerm, roleFilter, fetchUsers]);
 
   const handleToggleLock = async (userId: string) => {
     try {
       const response = await api.put(`/users/${userId}/toggle-lock`);
       if (response.data?.success) {
         alert(response.data.message);
-        fetchUsers(pagination.page, searchTerm);
+        fetchUsers(pagination.page, searchTerm, roleFilter);
       }
     } catch (error: any) {
       alert(error.response?.data?.message || "Thao tác thất bại");
@@ -81,7 +83,7 @@ export default function AdminUsersPage() {
       const response = await api.delete(`/users/${userId}`);
       if (response.data?.success) {
         alert("Xoá người dùng thành công");
-        fetchUsers(pagination.page, searchTerm);
+        fetchUsers(pagination.page, searchTerm, roleFilter);
       }
     } catch (error: any) {
       alert(error.response?.data?.message || "Xoá thất bại");
@@ -106,22 +108,34 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Filters & Search */}
-      <div className="flex flex-col md:flex-row gap-4 p-4 bg-white/5 border border-white/10 rounded-3xl">
+      <div className="flex flex-col lg:flex-row gap-4 p-4 bg-white/5 border border-white/10 rounded-3xl">
+        {/* Role Tabs */}
+        <div className="flex bg-white/5 p-1 rounded-2xl border border-white/5">
+          {(["ALL", "ADMIN", "USER"] as const).map(role => (
+            <button 
+              key={role}
+              onClick={() => setRoleFilter(role)}
+              className={`px-5 py-2 rounded-xl text-sm font-bold transition-all ${
+                roleFilter === role 
+                  ? "bg-[#E8734A] text-white shadow-lg shadow-[#E8734A]/20" 
+                  : "text-gray-400 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              {role === "ALL" ? "Tất cả" : role === "ADMIN" ? "Quản trị viên" : "Người dùng"}
+            </button>
+          ))}
+        </div>
+
+        {/* Search */}
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input 
             type="text" 
             placeholder="Tìm theo tên hoặc email..." 
-            className="w-full bg-white/5 border border-white/5 rounded-2xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:border-[#E8734A] transition-all text-white placeholder-gray-500"
+            className="w-full h-full bg-white/5 border border-white/5 rounded-2xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:border-[#E8734A] transition-all text-white placeholder-gray-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-        </div>
-        <div className="flex gap-2">
-          <button className="flex items-center gap-2 px-4 py-3 bg-white/5 border border-white/5 hover:bg-white/10 rounded-2xl text-sm font-semibold text-gray-300 transition">
-            <Filter size={18} />
-            <span>Bộ lọc</span>
-          </button>
         </div>
       </div>
 
@@ -213,9 +227,13 @@ export default function AdminUsersPage() {
                         >
                           <Trash2 size={18} />
                         </button>
-                        <button className="p-2 hover:bg-white/10 text-gray-400 hover:text-white rounded-xl transition">
-                          <MoreVertical size={18} />
-                        </button>
+                        <a 
+                          href={`mailto:${user.email}`}
+                          className="p-2 flex items-center justify-center hover:bg-white/10 text-gray-400 hover:text-blue-400 rounded-xl transition"
+                          title="Gửi email cho người dùng này"
+                        >
+                          <Mail size={18} />
+                        </a>
                       </div>
                     </td>
                   </tr>
@@ -239,7 +257,7 @@ export default function AdminUsersPage() {
               {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map(n => (
                 <button 
                   key={n} 
-                  onClick={() => fetchUsers(n, searchTerm)}
+                  onClick={() => fetchUsers(n, searchTerm, roleFilter)}
                   className={`w-8 h-8 rounded-lg text-xs font-bold transition flex items-center justify-center ${
                     n === pagination.page ? "accent-gradient text-white shadow-lg shadow-[#E8734A]/20" : "hover:bg-white/10 text-gray-400"
                   }`}

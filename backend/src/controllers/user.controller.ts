@@ -36,10 +36,10 @@ export const getAllUsers = async (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 10;
     const skip  = (page - 1) * limit;
 
-    // Tìm kiếm theo tên hoặc email: ?search=abc
     const search = req.query.search as string;
+    const role = req.query.role as string;
 
-    const where = search
+    const where: any = search
       ? {
           OR: [
             { name:  { contains: search, mode: 'insensitive' as const } },
@@ -47,6 +47,10 @@ export const getAllUsers = async (req: Request, res: Response) => {
           ],
         }
       : {};
+
+    if (role === 'ADMIN' || role === 'USER') {
+      where.role = role;
+    }
 
     const [users, total] = await Promise.all([
       prisma.user.findMany({

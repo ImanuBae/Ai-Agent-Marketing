@@ -13,16 +13,16 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
-  // Initialize from localStorage directly to avoid cascading renders in useEffect
-  const [lang, setLangState] = useState<Language>(() => {
+  const [lang, setLangState] = useState<Language>("vn");
+
+  React.useEffect(() => {
     if (typeof window !== "undefined") {
       const savedLang = localStorage.getItem("app_lang") as Language;
       if (savedLang === "vn" || savedLang === "en") {
-        return savedLang;
+        setLangState(savedLang);
       }
     }
-    return "vn";
-  });
+  }, []);
 
   const setLang = (newLang: Language) => {
     setLangState(newLang);

@@ -6,7 +6,7 @@ import { useTranslation } from "@/i18n/LanguageContext";
 export default function TrendingCards() {
   const { t } = useTranslation();
   const trendsData = t("trends.items") as unknown as { title: string, desc: string }[];
-  
+
   const trends = [
     { title: trendsData[0].title, desc: trendsData[0].desc, growth: "0%", icon: ShoppingBag, color: "bg-blue-500/10 text-blue-500" },
     { title: trendsData[1].title, desc: trendsData[1].desc, growth: "0%", icon: Video, color: "bg-indigo-500/10 text-indigo-500" },

@@ -83,14 +83,9 @@ export default function LoginPage() {
           {/* Logo + Title */}
           <div className="flex flex-col items-center mb-8">
             <Link href="/" className="hover:opacity-80 transition-opacity mb-4">
-              <Image
-                src="/ChatGPT Image Apr 6, 2026, 01_39_17 PM.png"
-                alt="AI Marketing Agent"
-                width={64}
-                height={64}
-                className="h-14 w-auto logo-dark-fix object-contain"
-                priority
-              />
+              <span className="text-4xl text-[#E8734A] dark:text-white flex items-center justify-center h-14" style={{ fontFamily: '"Brush Script MT", cursive' }}>
+                Imanu's Lab
+              </span>
             </Link>
             <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
               Chào mừng trở lại!

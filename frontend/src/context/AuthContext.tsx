@@ -52,15 +52,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     try {
-      const response = await api.get('auth/me');
-      console.log("AuthProvider: Session verified");
+      // validateStatus: chấp nhận 401 như response bình thường, không throw error
+      // → tránh Next.js dev overlay hiện lên khi chưa đăng nhập
+      const response = await api.get('auth/me', {
+        validateStatus: (status) => status < 500,
+      });
       if (response.data?.success) {
         setUser(response.data.data);
       } else {
         setUser(null);
       }
     } catch (error) {
-      // Use console.log instead of error to avoid triggering the Next.js dev overlay for expected 401s
       console.log("AuthProvider: No active session (expected if not logged in)");
       setUser(null);
     } finally {
