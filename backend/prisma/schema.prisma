@@ -15,6 +15,7 @@ model User {
   name             String
   role             Role              @default(USER)
   avatar           String?
+  phone            String?
   isLocked         Boolean           @default(false)
   resetToken       String?
   resetTokenExpiry DateTime?
@@ -86,6 +87,18 @@ model ContentTemplate {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("content_templates")
+}
+
+model DailyApiQuota {
+  id           String   @id @default(cuid())
+  dateKey      String   // "2026-04-24" — UTC date string
+  model        String
+  requestCount Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([dateKey, model])
+  @@map("daily_api_quotas")
 }
 
 enum Role {

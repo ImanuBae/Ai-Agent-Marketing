@@ -7,7 +7,7 @@ import { getQuotaStatus, testGeminiAPI } from '../services/gemini.service';
 // ── CẬP NHẬT THÔNG TIN CÁ NHÂN ────────────────────────────────
 export const updateProfile = async (req: Request, res: Response) => {
   try {
-    const { name, avatar } = req.body;
+    const { name, phone, avatar } = req.body;
     const userId = req.user!.userId;
 
     const updated = await prisma.user.update({
@@ -15,14 +15,42 @@ export const updateProfile = async (req: Request, res: Response) => {
       data: {
         ...(name && { name }),
         ...(avatar && { avatar }),
+        ...(phone !== undefined && { phone: phone || null }),
       },
       select: {
         id: true, email: true, name: true,
-        role: true, avatar: true, updatedAt: true,
+        phone: true, role: true, avatar: true, updatedAt: true,
       },
     });
 
     return sendSuccess(res, 'Cập nhật thông tin thành công', updated);
+  } catch (error) {
+    return sendError(res, 'Lỗi server', 500, error);
+  }
+};
+
+// ── UPLOAD AVATAR ──────────────────────────────────────────────
+export const uploadUserAvatar = async (req: Request, res: Response) => {
+  try {
+    if (!req.file) {
+      return sendError(res, 'Không có file được upload', 400);
+    }
+
+    const userId = req.user!.userId;
+    const protocol = req.protocol;
+    const host = req.get('host');
+    const avatarUrl = `${protocol}://${host}/uploads/avatars/${req.file.filename}`;
+
+    const updated = await prisma.user.update({
+      where: { id: userId },
+      data: { avatar: avatarUrl },
+      select: {
+        id: true, email: true, name: true,
+        phone: true, role: true, avatar: true, updatedAt: true,
+      },
+    });
+
+    return sendSuccess(res, 'Upload avatar thành công', updated);
   } catch (error) {
     return sendError(res, 'Lỗi server', 500, error);
   }
@@ -192,11 +220,11 @@ export const toggleAdminRole = async (req: Request, res: Response) => {
 // ── KIỂM TRA QUOTA API GEMINI ──────────────────────────────────
 export const getApiQuotaStatus = async (req: Request, res: Response) => {
   try {
-    const quota = getQuotaStatus();
-    
+    const quota = await getQuotaStatus();
+
     return sendSuccess(res, 'Lấy thông tin quota thành công', {
       quota,
-      message: quota.remaining === 0 
+      message: quota.remaining === 0
         ? '⚠️ Hết quota cho hôm nay. Quay lại vào ngày mai!'
         : `Còn ${quota.remaining}/${quota.limit} requests`,
     });

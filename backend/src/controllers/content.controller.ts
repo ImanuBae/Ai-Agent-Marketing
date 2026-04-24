@@ -2,6 +2,7 @@
 import { Request, Response } from 'express';
 import prisma from '../utils/prisma';
 import { sendSuccess, sendError } from '../utils/response';
+import { QuotaExhaustedError } from '../services/quota.manager';
 import {
   generateCaptionWithHashtags,
   generateHashtags,
@@ -11,65 +12,63 @@ import {
 
 type Platform = 'facebook' | 'linkedin' | 'tiktok';
 
-// ── TẠO CAPTION BẰNG AI ───────────────────────────────────────
+// Returns 503 for quota exhaustion, 500 for all other AI errors
+const handleAiError = (res: Response, error: unknown, fallbackMsg: string): Response => {
+  if (error instanceof QuotaExhaustedError) {
+    return sendError(res, error.message, 503);
+  }
+  return sendError(res, fallbackMsg, 500, error);
+};
+
+// ── TẠO CAPTION BẰNG AI ───────────────────────────────────────────────────────
+
 export const createCaption = async (req: Request, res: Response) => {
   try {
     const { brief, platform, tone } = req.body;
     const userId = req.user!.userId;
 
-    // 💡 Tối ưu: 1 API call thay vì 2 (caption + hashtags cùng lúc)
     const { caption, hashtags } = await generateCaptionWithHashtags(
-      brief, 
-      platform as Platform, 
-      tone
+      brief,
+      platform as Platform,
+      tone,
     );
 
-    // Lưu vào DB
     const content = await prisma.content.create({
-      data: {
-        userId,
-        platform,
-        caption,
-        hashtags,
-        status: 'draft',
-      },
+      data: { userId, platform, caption, hashtags, status: 'draft' },
     });
 
     return sendSuccess(res, 'Tạo caption thành công', { content, hashtags });
   } catch (error) {
-    return sendError(res, 'Lỗi khi gọi AI', 500, error);
+    return handleAiError(res, error, 'Lỗi khi gọi AI');
   }
 };
 
-// ── GỢI Ý HASHTAG ─────────────────────────────────────────────
+// ── GỢI Ý HASHTAG ─────────────────────────────────────────────────────────────
+
 export const suggestHashtags = async (req: Request, res: Response) => {
   try {
     const { content, platform } = req.body;
-
     const hashtags = await generateHashtags(content, platform as Platform);
-
     return sendSuccess(res, 'Gợi ý hashtag thành công', { hashtags });
   } catch (error) {
-    return sendError(res, 'Lỗi khi gọi AI', 500, error);
+    return handleAiError(res, error, 'Lỗi khi gọi AI');
   }
 };
 
-// ── TẠO MÔ TẢ SẢN PHẨM ───────────────────────────────────────
+// ── TẠO MÔ TẢ SẢN PHẨM ───────────────────────────────────────────────────────
+
 export const createProductDescription = async (req: Request, res: Response) => {
   try {
     const { productName, features, targetAudience } = req.body;
-
-    const description = await generateProductDescription(
-      productName, features, targetAudience
-    );
-
+    const description = await generateProductDescription(productName, features, targetAudience);
     return sendSuccess(res, 'Tạo mô tả sản phẩm thành công', { description });
   } catch (error) {
-    return sendError(res, 'Lỗi khi gọi AI', 500, error);
+    return handleAiError(res, error, 'Lỗi khi gọi AI');
   }
 };
 
-// ── XEM LỊCH SỬ CONTENT ───────────────────────────────────────
+// ── XEM LỊCH SỬ CONTENT ───────────────────────────────────────────────────────
+
 export const getContentHistory = async (req: Request, res: Response) => {
   try {
     const userId   = req.user!.userId;
@@ -98,24 +97,20 @@ export const getContentHistory = async (req: Request, res: Response) => {
 
     return sendSuccess(res, 'Lấy lịch sử content thành công', {
       contents,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
+      pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
     });
   } catch (error) {
     return sendError(res, 'Lỗi server', 500, error);
   }
 };
 
-// ── CẬP NHẬT CONTENT ──────────────────────────────────────────
+// ── CẬP NHẬT CONTENT ──────────────────────────────────────────────────────────
+
 export const updateContent = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
     const { caption, hashtags } = req.body;
-    const userId              = req.user!.userId;
+    const userId = req.user!.userId;
 
     const content = await prisma.content.findFirst({ where: { id, userId } });
     if (!content) return sendError(res, 'Không tìm thấy content', 404);
@@ -137,7 +132,8 @@ export const updateContent = async (req: Request, res: Response) => {
   }
 };
 
-// ── XÓA CONTENT ───────────────────────────────────────────────
+// ── XÓA CONTENT ───────────────────────────────────────────────────────────────
+
 export const deleteContent = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
@@ -150,55 +146,49 @@ export const deleteContent = async (req: Request, res: Response) => {
     }
 
     await prisma.content.delete({ where: { id } });
-
     return sendSuccess(res, 'Xóa content thành công');
   } catch (error) {
     return sendError(res, 'Lỗi server', 500, error);
   }
 };
 
-// ── LƯU TEMPLATE ──────────────────────────────────────────────
+// ── LƯU TEMPLATE ──────────────────────────────────────────────────────────────
+
 export const saveTemplate = async (req: Request, res: Response) => {
   try {
     const { name, brief, platform, tone } = req.body;
     const userId = req.user!.userId;
-
     const template = await prisma.contentTemplate.create({
       data: { userId, name, brief, platform, tone },
     });
-
     return sendSuccess(res, 'Lưu template thành công', template, 201);
   } catch (error) {
     return sendError(res, 'Lỗi server', 500, error);
   }
 };
 
-// ── XEM DANH SÁCH TEMPLATE ────────────────────────────────────
+// ── XEM DANH SÁCH TEMPLATE ────────────────────────────────────────────────────
+
 export const getTemplates = async (req: Request, res: Response) => {
   try {
     const userId = req.user!.userId;
-
     const templates = await prisma.contentTemplate.findMany({
       where:   { userId },
       orderBy: { createdAt: 'desc' },
     });
-
     return sendSuccess(res, 'Lấy danh sách template thành công', templates);
   } catch (error) {
     return sendError(res, 'Lỗi server', 500, error);
   }
 };
 
-// ── ĐỀ XUẤT CHIẾN LƯỢC ───────────────────────────────────────
+// ── ĐỀ XUẤT CHIẾN LƯỢC ───────────────────────────────────────────────────────
+
 export const getContentStrategy = async (req: Request, res: Response) => {
   try {
     const { industry, platform } = req.body;
     const userId = req.user!.userId;
 
-    // BUG FIX: Lấy 5 bài đăng mới nhất đã published (không phải "nhiều tương tác nhất"
-    // vì schema Content chưa có field engagementCount).
-    // TODO: Thêm field engagementCount vào schema Content và sort theo đó
-    // khi có dữ liệu analytics thực tế từ Phần 10.
     const topContents = await prisma.content.findMany({
       where:   { userId, platform, status: 'published' },
       take:    5,
@@ -213,11 +203,11 @@ export const getContentStrategy = async (req: Request, res: Response) => {
     const strategy = await generateContentStrategy(
       industry,
       topPostsSummary || 'Chưa có dữ liệu bài đăng',
-      platform
+      platform,
     );
 
     return sendSuccess(res, 'Tạo chiến lược thành công', { strategy });
   } catch (error) {
-    return sendError(res, 'Lỗi khi gọi AI', 500, error);
+    return handleAiError(res, error, 'Lỗi khi gọi AI');
   }
 };

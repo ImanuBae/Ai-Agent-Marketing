@@ -11,7 +11,7 @@ import { sendResetPasswordEmail } from '../utils/mailer';
 // ── ĐĂNG KÝ ───────────────────────────────────────────────────
 export const register = async (req: Request, res: Response) => {
   try {
-    const { email, password, name } = req.body;
+    const { email, password, name, phone } = req.body;
 
     // Kiểm tra thiếu field
     if (!email || !password || !name) {
@@ -29,8 +29,8 @@ export const register = async (req: Request, res: Response) => {
 
     // Tạo user mới
     const user = await prisma.user.create({
-      data: { email, password: hashedPassword, name },
-      select: { id: true, email: true, name: true, role: true, createdAt: true },
+      data: { email, password: hashedPassword, name, ...(phone && { phone }) },
+      select: { id: true, email: true, name: true, phone: true, role: true, createdAt: true },
     });
 
     return sendSuccess(res, 'Đăng ký thành công!', user, 201);
@@ -83,6 +83,7 @@ export const login = async (req: Request, res: Response) => {
         name: user.name,
         role: user.role,
         avatar: user.avatar,
+        phone: user.phone,
       },
     });
   } catch (error) {
@@ -97,7 +98,7 @@ export const getMe = async (req: Request, res: Response) => {
       where: { id: req.user!.userId },
       select: {
         id: true, email: true, name: true,
-        role: true, avatar: true, createdAt: true,
+        role: true, avatar: true, phone: true, createdAt: true,
       },
     });
 

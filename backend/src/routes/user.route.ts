@@ -1,11 +1,12 @@
 // src/routes/user.route.ts
 import { Router } from 'express';
 import {
-  updateProfile, getAllUsers, getUserById,
+  updateProfile, uploadUserAvatar, getAllUsers, getUserById,
   toggleLockUser, deleteUser, toggleAdminRole, getApiQuotaStatus, testGeminiConnection,
 } from '../controllers/user.controller';
 import { authenticate } from '../middlewares/auth.middleware';
 import { requireAdmin } from '../middlewares/auth.middleware';
+import { avatarUpload } from '../middlewares/upload.middleware';
 
 const router = Router();
 
@@ -45,6 +46,27 @@ router.use(authenticate);
  *         description: Cập nhật thành công
  */
 router.put('/profile', updateProfile);
+
+/**
+ * @swagger
+ * /api/users/avatar:
+ *   post:
+ *     summary: Upload avatar người dùng
+ *     tags: [Users]
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Upload thành công
+ */
+router.post('/avatar', avatarUpload.single('avatar'), uploadUserAvatar);
 
 /**
  * @swagger

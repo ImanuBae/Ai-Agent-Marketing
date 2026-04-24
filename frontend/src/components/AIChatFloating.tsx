@@ -50,7 +50,11 @@ export default function AIChatFloating() {
   };
 
   const handleSend = async (messageText: string = input) => {
-    const textToSend = messageText.trim().replace(/^[^\s]+\s/, "");
+    // Strip leading emoji+space from quick suggestion buttons (e.g. "📊 Phân tích..." → "Phân tích...")
+    // Only strip if it comes from a quick suggestion (not user-typed input)
+    const textToSend = messageText === input
+      ? messageText.trim()
+      : messageText.trim().replace(/^\S+\s/, "");
     if (!textToSend || loading) return;
 
     setUserMessages((prev) => [...prev, { text: textToSend, sender: "user" }]);
@@ -71,14 +75,19 @@ export default function AIChatFloating() {
         ]);
         if (isMinimized) setHasNewMessage(true);
       }
-    } catch {
-      setUserMessages((prev) => [
-        ...prev,
-        {
-          text: "Rất tiếc, đã có lỗi kết nối. Bạn vui lòng thử lại sau nhé!",
-          sender: "ai",
-        },
-      ]);
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { status?: number; data?: { message?: string } }; code?: string };
+      let errText = "Rất tiếc, đã có lỗi kết nối. Bạn vui lòng thử lại sau nhé!";
+      if (!axiosErr.response) {
+        errText = "Không kết nối được server. Hãy kiểm tra backend đang chạy chưa.";
+      } else if (axiosErr.response.status === 401) {
+        errText = "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
+      } else if (axiosErr.response.status === 503) {
+        errText = axiosErr.response.data?.message || "AI đang bận, vui lòng thử lại sau 30 giây.";
+      } else if (axiosErr.response.data?.message) {
+        errText = axiosErr.response.data.message;
+      }
+      setUserMessages((prev) => [...prev, { text: errText, sender: "ai" }]);
     } finally {
       setLoading(false);
     }

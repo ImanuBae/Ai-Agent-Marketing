@@ -107,6 +107,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         name: data.name,
         email: data.email,
         password: data.password,
+        ...(data.phone && { phone: data.phone }),
       });
 
       if (response.data?.success) {
