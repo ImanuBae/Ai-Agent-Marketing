@@ -17,6 +17,7 @@ import { errorHandler } from './middlewares/error.middleware';
 import contentRoutes from './routes/content.route';
 import adminRoutes from './routes/admin.route';
 import chatRoutes from './routes/chat.route';
+import trendsRoutes from './routes/trends.route';
 
 const app: Application = express();
 const PORT = process.env.PORT || 5000;
@@ -39,6 +40,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/content', contentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/trends', trendsRoutes);
 
 // ── Swagger Docs ───────────────────────────────────────────────
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));

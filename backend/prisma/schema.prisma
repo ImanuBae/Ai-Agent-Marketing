@@ -47,6 +47,7 @@ model Content {
 model Schedule {
   id          String   @id @default(cuid())
   userId      String
+  userId      String
   contentId   String   @unique
   scheduledAt DateTime
   status      String   @default("pending")
