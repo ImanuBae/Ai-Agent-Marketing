@@ -9,55 +9,100 @@ datasource db {
 }
 
 model User {
-  id               String            @id @default(cuid())
-  email            String            @unique
+  id               String           @id @default(cuid())
+  email            String           @unique
   password         String
   name             String
-  role             Role              @default(USER)
+  role             Role             @default(USER)
   avatar           String?
   phone            String?
-  isLocked         Boolean           @default(false)
+  isLocked         Boolean          @default(false)
   resetToken       String?
   resetTokenExpiry DateTime?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
   templates        ContentTemplate[]
   contents         Content[]
   schedules        Schedule[]
   socials          SocialAccount[]
+  engagements      EngagementData[]
+  timeSlots        TimeSlotStats[]
 
   @@map("users")
 }
 
 model Content {
-  id        String    @id @default(cuid())
-  userId    String
-  platform  String
-  caption   String
-  hashtags  String[]
-  status    String    @default("draft")
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  schedule  Schedule?
+  id         String          @id @default(cuid())
+  userId     String
+  platform   String
+  caption    String
+  hashtags   String[]
+  status     String          @default("draft")
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  schedule   Schedule?
+  engagement EngagementData?
 
   @@map("contents")
 }
 
 model Schedule {
-  id          String   @id @default(cuid())
-  userId      String
-  userId      String
-  contentId   String   @unique
-  scheduledAt DateTime
-  status      String   @default("pending")
-  errorMsg    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  content     Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id              String   @id @default(cuid())
+  userId          String
+  contentId       String   @unique
+  platform        String
+  scheduledAt     DateTime
+  timezone        String   @default("UTC")
+  status          String   @default("pending") // pending | published | failed
+  isOptimized     Boolean  @default(false)
+  confidenceScore Float?   // 0.0–1.0; null = benchmark-based
+  errorMsg        String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  content         Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("schedules")
+}
+
+// Raw engagement recorded after a post is published (learning loop input)
+model EngagementData {
+  id          String   @id @default(cuid())
+  userId      String
+  contentId   String   @unique
+  platform    String
+  dayOfWeek   Int      // 0 = Sunday … 6 = Saturday (UTC)
+  hourOfDay   Int      // 0–23 (UTC)
+  likes       Int      @default(0)
+  comments    Int      @default(0)
+  clicks      Int      @default(0)
+  impressions Int      @default(0)
+  score       Float    @default(0) // computed: 0.4*likes + 0.3*comments + 0.2*clicks + 0.1*CTR*100
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content     Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@map("engagement_data")
+}
+
+// Aggregated Beta-distribution params per (user, platform, day, hour) — drives the optimizer
+model TimeSlotStats {
+  id          String   @id @default(cuid())
+  userId      String
+  platform    String
+  dayOfWeek   Int      // 0–6 (UTC)
+  hourOfDay   Int      // 0–23 (UTC)
+  sampleCount Int      @default(0)
+  totalScore  Float    @default(0)
+  avgScore    Float    @default(0)
+  alphaParam  Float    @default(1.0) // Beta(α, β) — successes component
+  betaParam   Float    @default(1.0) // Beta(α, β) — failures component
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, platform, dayOfWeek, hourOfDay])
+  @@map("time_slot_stats")
 }
 
 model SocialAccount {
