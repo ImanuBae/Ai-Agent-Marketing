@@ -98,7 +98,11 @@ export async function createSchedule(
     data: { status: 'scheduled' },
   });
 
-  await addScheduleJob(schedule.id, contentId, finalTime);
+  try {
+    await addScheduleJob(schedule.id, contentId, finalTime);
+  } catch (err) {
+    console.warn('[Schedule] Redis không khả dụng - job không được queue:', err);
+  }
   return schedule;
 }
 
@@ -168,7 +172,11 @@ export async function deleteSchedule(scheduleId: string, userId: string) {
   });
   if (!schedule) throw new Error('Schedule not found or already executed');
 
-  await removeScheduleJob(scheduleId);
+  try {
+    await removeScheduleJob(scheduleId);
+  } catch {
+    console.warn('[Schedule] Redis không khả dụng - không xóa được job khỏi queue');
+  }
 
   await prisma.content.update({
     where: { id: schedule.contentId },

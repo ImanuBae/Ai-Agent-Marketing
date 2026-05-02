@@ -8,7 +8,13 @@ const isRedisConfigured =
 let scheduleQueue: Queue | null = null;
 
 if (isRedisConfigured) {
-  const connection = { url: REDIS_URL };
+  const connection = {
+    url: REDIS_URL,
+    maxRetriesPerRequest: null,   // required by BullMQ
+    enableOfflineQueue: false,    // fail fast when Redis is down
+    connectTimeout: 5000,
+    lazyConnect: true,
+  };
 
   scheduleQueue = new Queue('schedule-posts', { connection });
 
@@ -40,7 +46,6 @@ if (isRedisConfigured) {
         where: { id: scheduleId },
       });
       if (schedule) {
-        const now = new Date();
         await prisma.engagementData.upsert({
           where: { contentId },
           create: {

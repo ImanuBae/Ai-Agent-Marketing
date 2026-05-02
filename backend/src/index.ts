@@ -19,6 +19,7 @@ import adminRoutes from './routes/admin.route';
 import chatRoutes from './routes/chat.route';
 import trendsRoutes from './routes/trends.route';
 import scheduleRoutes from './routes/schedule.route';
+import analyticsRoutes from './routes/analytics.route';
 // Initialise BullMQ worker on startup
 import './services/queue.service';
 
@@ -45,6 +46,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/trends', trendsRoutes);
 app.use('/api/schedule', scheduleRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // ── Swagger Docs ───────────────────────────────────────────────
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));

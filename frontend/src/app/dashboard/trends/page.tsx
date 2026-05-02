@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   TrendingUp,
   Search,
@@ -31,6 +32,7 @@ interface TrendIdea {
 }
 
 export default function TrendsPage() {
+  const router = useRouter();
   const [trends, setTrends] = useState<TrendKeyword[]>([]);
   const [ideas, setIdeas] = useState<TrendIdea[]>([]);
   const [loadingTrends, setLoadingTrends] = useState(true);
@@ -239,7 +241,10 @@ export default function TrendsPage() {
                     </div>
                     <h4 className="font-bold text-sm text-gray-900 dark:text-white leading-snug group-hover:text-[#E8734A] transition-colors line-clamp-2 w-full">{idea.title}</h4>
                     <div className="mt-4 pt-3 border-t border-gray-100 dark:border-white/5 w-full flex-shrink-0">
-                      <button className="flex items-center justify-between w-full text-xs font-bold text-[#E8734A] hover:text-[#d6653e] hover:pl-1 transition-all">
+                      <button
+                        onClick={() => router.push("/dashboard/content")}
+                        className="flex items-center justify-between w-full text-xs font-bold text-[#E8734A] hover:text-[#d6653e] hover:pl-1 transition-all"
+                      >
                         <span className="flex items-center gap-1"><PenTool size={12} /> Tạo bài viết ngay</span>
                         <span>&rarr;</span>
                       </button>
