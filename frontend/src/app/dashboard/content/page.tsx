@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { 
-  Send, Sparkles, Copy, Check, Clock, 
+import {
+  Send, Sparkles, Copy, Check, Clock,
   Image as ImageIcon, Hash, Type, AlignLeft, ChevronDown, AlertCircle
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
 
 interface ContentResult {
@@ -16,6 +17,7 @@ interface ContentResult {
 }
 
 export default function ContentAIPage() {
+  const router = useRouter();
   const [platform, setPlatform] = useState("facebook");
   const [tone, setTone] = useState("Chuyên nghiệp");
   const [brief, setBrief] = useState("");
@@ -290,7 +292,10 @@ export default function ContentAIPage() {
                     ) : "Đính kèm ảnh"}
                   </label>
                 </div>
-                <button className="flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-gray-200 text-white text-sm font-bold rounded-xl transition shadow-md">
+                <button
+                  onClick={() => router.push("/dashboard/schedule")}
+                  className="flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-gray-200 text-white text-sm font-bold rounded-xl transition shadow-md"
+                >
                   <Send size={16} /> Lên lịch đăng
                 </button>
               </div>
