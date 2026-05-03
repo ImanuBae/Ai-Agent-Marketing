@@ -2,8 +2,8 @@
 
 import { Check, Sparkles, Zap, Building2, ArrowRight } from "lucide-react";
 
-import { useTranslation } from "@/i18n/LanguageContext";
-import { useAuth } from "@/context/AuthContext";
+import { useTranslation } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 
 const planVisuals = [

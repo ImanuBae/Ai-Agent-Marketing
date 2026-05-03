@@ -1,7 +1,7 @@
 import { X, Mail, Lock, User } from "lucide-react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { useTranslation } from "@/i18n/LanguageContext";
+import { useTranslation } from "@/contexts/LanguageContext";
 
 interface AuthModalsProps {
   isOpen: boolean;

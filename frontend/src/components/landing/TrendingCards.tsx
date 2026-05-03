@@ -1,7 +1,7 @@
 "use client";
 
 import { TrendingUp, ShoppingBag, Video, Users, Heart, ArrowUpRight } from "lucide-react";
-import { useTranslation } from "@/i18n/LanguageContext";
+import { useTranslation } from "@/contexts/LanguageContext";
 
 export default function TrendingCards() {
   const { t } = useTranslation();

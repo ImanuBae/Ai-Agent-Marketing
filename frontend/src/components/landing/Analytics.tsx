@@ -2,7 +2,7 @@
 
 import { BarChart3, ArrowDownRight } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useTranslation } from "@/i18n/LanguageContext";
+import { useTranslation } from "@/contexts/LanguageContext";
 
 export default function Analytics() {
   const { t } = useTranslation();
@@ -13,9 +13,7 @@ export default function Analytics() {
       h2: 0
     }))
   );
-  const [cplBars] = useState<number[]>(() => 
-    Array.from({ length: 8 }, (_, i) => 0)
-  );
+
 
   // Note: Values are initialized once. In a real app, you might fetch these in useEffect.
   useEffect(() => {
@@ -71,33 +69,7 @@ export default function Analytics() {
         </div>
       </div>
 
-      <div className="grid sm:grid-cols-2 gap-6">
-        <div className="mini-chart rounded-[32px] p-8 shadow-lg hover:shadow-xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/60 dark:border-white/10 transition-all duration-300">
-          <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4">{t("analytics.conversion_rate")}</div>
-          <div className="text-4xl font-black text-gray-300 dark:text-gray-700 mb-4 tracking-tighter">0%</div>
-          <div className="w-full bg-gray-100 dark:bg-white/5 rounded-full h-1.5">
-            <div className="h-full rounded-full bg-[#E8734A]/20" style={{ width: "0%" }}></div>
-          </div>
-          <div className="text-[10px] text-gray-400 mt-4 font-bold uppercase tracking-wider">{t("analytics.target")}: 0%</div>
-        </div>
-        
-        <div className="mini-chart rounded-[32px] p-8 shadow-lg hover:shadow-xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/60 dark:border-white/10 transition-all duration-300">
-          <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4">{t("analytics.cpl")}</div>
-          <div className="text-4xl font-black text-gray-300 dark:text-gray-700 mb-2 tracking-tighter">₫0</div>
-          <div className="flex gap-1 h-10 items-end mb-4">
-            {cplBars.map((h, i) => (
-              <div 
-                key={i} 
-                className="rounded-sm flex-1 bg-[#F09070]/10" 
-                style={{ height: `10%`, transition: `height 0.5s ${i * 30}ms ease-out` }}
-              ></div>
-            ))}
-          </div>
-          <div className="text-[10px] text-gray-400 mt-2 flex items-center gap-1 font-bold uppercase tracking-wider">
-             {t("analytics.decrease_last_month")}: 0%
-          </div>
-        </div>
-      </div>
+
     </section>
   );
 }

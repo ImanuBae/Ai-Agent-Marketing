@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function AdminSidebar() {
   const pathname = usePathname();

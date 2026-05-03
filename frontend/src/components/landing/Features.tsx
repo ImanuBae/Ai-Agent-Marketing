@@ -2,7 +2,7 @@
 
 import { MessageSquare, TrendingUp, Calendar, Share2, BarChart3, Sparkles, ArrowRight } from "lucide-react";
 
-import { useTranslation } from "@/i18n/LanguageContext";
+import { useTranslation } from "@/contexts/LanguageContext";
 
 const featureVisuals = [
   {

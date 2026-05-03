@@ -2,7 +2,7 @@
 
 import { ChevronDown } from "lucide-react";
 import { useState } from "react";
-import { useTranslation } from "@/i18n/LanguageContext";
+import { useTranslation } from "@/contexts/LanguageContext";
 
 export default function CategoryTags() {
   const { t } = useTranslation();

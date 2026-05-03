@@ -2,16 +2,16 @@
 
 import { useState } from "react";
 import Header from "@/components/layout/Header";
-import Hero from "@/components/Hero";
-import TrendingCards from "@/components/TrendingCards";
-import CategoryTags from "@/components/CategoryTags";
-import Analytics from "@/components/Analytics";
-import Features from "@/components/Features";
-import Pricing from "@/components/Pricing";
-import CTASwiper from "@/components/CTASwiper";
+import Hero from "@/components/landing/Hero";
+import TrendingCards from "@/components/landing/TrendingCards";
+import CategoryTags from "@/components/landing/CategoryTags";
+import Analytics from "@/components/landing/Analytics";
+import Features from "@/components/landing/Features";
+import Pricing from "@/components/landing/Pricing";
+import CTASwiper from "@/components/landing/CTASwiper";
 import Footer from "@/components/layout/Footer";
-import AuthModals from "@/components/AuthModals";
-import AIChatFloating from "@/components/AIChatFloating";
+import AuthModals from "@/components/auth/AuthModals";
+import AIChatFloating from "@/components/shared/AIChatFloating";
 
 export default function Home() {
   const [authModal, setAuthModal] = useState<{ open: boolean; type: "login" | "register" }>({

@@ -62,12 +62,23 @@ This document covers the complete project structure and important notes for deve
 | `layout.tsx` | Dashboard layout (left sidebar) | ✅ Complete |
 | `page.tsx` | **Dashboard overview** — Stats & charts | ✅ Complete |
 | `connections/page.tsx` | **Social connections** — Facebook, Instagram, TikTok... | ⚠️ Using mock data |
-| `content/page.tsx` | **AI Content Generator** — Create content with AI | ⚠️ Needs verification |
+| `content/page.tsx` | **AI Content Generator** — Create content with AI | ✅ Connected to Gemini |
 | `trends/page.tsx` | **Trends** — Market trend analysis | ⚠️ Needs verification |
 | `schedule/page.tsx` | **Schedule** — Manage content posting schedule | ⚠️ Needs verification |
 | `analytics/page.tsx` | **Analytics** — Performance reports | ❌ Empty, not yet developed |
 | `profile/page.tsx` | **Profile** — User account settings | ✅ Connected to API |
 | `security/page.tsx` | **Security** — Change password | ✅ Connected to API |
+
+#### `src/app/admin/` — Admin Panel (Admin only)
+| File/Folder | Purpose | Status |
+|---|---|---|
+| `layout.tsx` | Admin layout (Admin Sidebar) | ✅ Complete |
+| `page.tsx` | **Admin Dashboard** — System stats & overview | ✅ Complete |
+| `users/` | **User Management** — List, Lock, Delete users | ✅ Complete |
+| `content/` | **Content Management** — Manage AI generated content | ✅ Complete |
+| `system/` | **System Status** — Monitor server & API health | ✅ Complete |
+| `settings/` | **System Settings** — Global configurations | ✅ Complete |
+| `logs/` | **System Logs** — View application logs | ✅ Complete |
 
 ### 2.3. `src/components/` — Reusable Components
 
@@ -78,17 +89,20 @@ This document covers the complete project structure and important notes for deve
 | `CTASwiper.tsx` | CTA carousel (using Swiper.js) |
 | `CategoryTags.tsx` | Category/Topic tags |
 | `TrendingCards.tsx` | Trending content cards |
-| `AIChat.tsx` | AI Chat demo interface on landing page |
+| `Features.tsx` | Features showcase section |
+| `Pricing.tsx` | Pricing plans section |
 | `Analytics.tsx` | Analytics features showcase |
 | `AuthModals.tsx` | Login/Register modals (popup) |
+| `AIChatFloating.tsx` | **Floating AI Chat Widget** — Interactive assistant |
 
 #### `components/layout/` — Layout Components
 | File | Purpose |
 |---|---|
 | `Header.tsx` | Header / Navbar on landing page |
 | `Footer.tsx` | Footer on landing page |
-| `Sidebar.tsx` | Landing page sidebar (if needed) |
-| `DashboardSidebar.tsx` | Dashboard sidebar — left navigation menu |
+| `DashboardHeader.tsx` | Header for Dashboard & Admin area |
+| `DashboardSidebar.tsx` | Sidebar for User Dashboard |
+| `AdminSidebar.tsx` | Sidebar for Admin Panel |
 
 #### `components/content/` — Content Components
 | File | Purpose |
@@ -167,4 +181,25 @@ This document covers the complete project structure and important notes for deve
 
 ---
 
-*Last updated: April 21, 2026 by Antigravity AI Assistant.*
+---
+
+## 5. Gemini API Errors & Troubleshooting
+
+### 5.1. Error 503 (Service Unavailable)
+Lỗi này xuất hiện khi Google Gemini API không thể xử lý yêu cầu do quá tải hoặc đang bảo trì.
+- **Nguyên nhân:** Lượng truy cập tăng đột biến (High Demand) hoặc giới hạn hạ tầng của Google.
+- **Thông báo lỗi:** `[503 Service Unavailable] This model is currently experiencing high demand...`
+
+### 5.2. Cách theo dõi trạng thái hệ thống Google
+Bạn có thể kiểm tra xem lỗi là do code của mình hay do hệ thống Google tại các link sau:
+1.  **Google AI Studio Dashboard:** [aistudio.google.com](https://aistudio.google.com/) (Kiểm tra Error Rate của API Key).
+2.  **Google Cloud Console:** [console.cloud.google.com](https://console.cloud.google.com/) (Kiểm tra lỗi 5xx trong Generative Language API).
+3.  **Google Cloud Status Dashboard:** [status.cloud.google.com](https://status.cloud.google.com/)
+
+### 5.3. Giải thích các thuật ngữ trên Trang Trạng Thái
+- **Multi-regions (Đa khu vực):** Các dịch vụ có tính dự phòng cao, phân bổ trên nhiều khu vực địa lý lớn.
+- **Non-regional (Không theo khu vực):** Trạng thái của các dịch vụ triển khai toàn cầu (như Gemini). Nếu phần này báo lỗi, nghĩa là dịch vụ đó đang gặp sự cố trên toàn hệ thống.
+
+---
+
+*Last updated: April 23, 2026 by Antigravity AI Assistant.*

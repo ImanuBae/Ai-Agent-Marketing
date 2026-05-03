@@ -1,13 +1,13 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import api from "@/lib/axios";
 import Image from "next/image";
 import { Camera, User, Mail, Phone, Briefcase, MapPin, Save, Loader2 } from "lucide-react";
 
 export default function ProfilePage() {
-  const { user, updateProfile } = useAuth();
+  const { user, updateProfile, syncUser } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -17,8 +17,6 @@ export default function ProfilePage() {
     name: user?.name || "",
     email: user?.email || "",
     phone: user?.phone || "",
-    businessName: user?.businessInfo?.name || "",
-    businessField: user?.businessInfo?.field || "",
   });
 
   const handleSave = async (e: React.FormEvent) => {
@@ -28,10 +26,6 @@ export default function ProfilePage() {
       await updateProfile({
         name: form.name,
         phone: form.phone,
-        businessInfo: {
-          name: form.businessName,
-          field: form.businessField,
-        }
       });
       alert("Cập nhật thông tin thành công!");
     } finally {
@@ -60,7 +54,7 @@ export default function ProfilePage() {
         headers: { "Content-Type": "multipart/form-data" },
       });
       if (response.data?.success) {
-        await updateProfile(response.data.data);
+        syncUser(response.data.data);
       }
     } catch {
       setAvatarPreview(null);
@@ -173,39 +167,6 @@ export default function ProfilePage() {
                     title="Số điện thoại phải có 10-11 chữ số"
                     className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-white"
                   />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-sm font-black text-gray-700 dark:text-gray-300 ml-1">Tên doanh nghiệp</label>
-                <div className="relative">
-                  <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    type="text"
-                    value={form.businessName}
-                    onChange={(e) => setForm({...form, businessName: e.target.value})}
-                    placeholder="Ví dụ: MarketAI Agency"
-                    className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-white"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5 md:col-span-2">
-                <label className="text-sm font-black text-gray-700 dark:text-gray-300 ml-1">Lĩnh vực hoạt động</label>
-                <div className="relative">
-                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <select
-                    value={form.businessField}
-                    onChange={(e) => setForm({...form, businessField: e.target.value})}
-                    className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-white appearance-none"
-                  >
-                    <option value="">Chọn lĩnh vực</option>
-                    <option value="Technology">Công nghệ</option>
-                    <option value="Fashion">Thời trang</option>
-                    <option value="Food & Beverage">Thực phẩm & Đồ uống</option>
-                    <option value="Beauty">Làm đẹp</option>
-                    <option value="Other">Khác</option>
-                  </select>
                 </div>
               </div>
             </div>

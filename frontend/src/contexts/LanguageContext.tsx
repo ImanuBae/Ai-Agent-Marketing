@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
-import { dictionaries, Language } from "./dictionaries";
+import { dictionaries, Language } from "@/i18n/dictionaries";
 
 interface LanguageContextType {
   lang: Language;

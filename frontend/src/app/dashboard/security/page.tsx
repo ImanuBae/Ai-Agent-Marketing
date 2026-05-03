@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Shield, Lock, Eye, EyeOff, CheckCircle2, AlertTriangle, ShieldCheck } from "lucide-react";
 
 export default function SecurityPage() {

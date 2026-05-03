@@ -16,13 +16,12 @@ export const metadata: Metadata = {
   title: "AI Marketing Agent - Hệ Thống Marketing Tự Động",
   description: "Phân tích xu hướng và sinh nội dung Marketing thông minh bằng trí tuệ nhân tạo.",
   icons: {
-    icon: "/ChatGPT Image Apr 6, 2026, 01_39_17 PM.png?v=1",
-    apple: "/ChatGPT Image Apr 6, 2026, 01_39_17 PM.png?v=1",
+    icon: "/images/hero-bg.png",
   },
 };
 
-import { LanguageProvider } from "@/i18n/LanguageContext";
-import { AuthProvider } from "@/context/AuthContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 export default function RootLayout({
   children,

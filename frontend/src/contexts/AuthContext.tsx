@@ -11,10 +11,6 @@ interface User {
   phone?: string;
   avatar?: string;
   role?: string;
-  businessInfo?: {
-    name: string;
-    field: string;
-  };
 }
 
 interface AuthContextType {
@@ -27,6 +23,7 @@ interface AuthContextType {
   logout: () => void;
   updateProfile: (data: Partial<User>) => Promise<void>;
   changePassword: (oldPass: string, newPass: string) => Promise<void>;
+  syncUser: (user: User) => void;
 }
 
 interface RegisterData {
@@ -161,6 +158,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const syncUser = (userData: User) => {
+    setUser(userData);
+  };
+
   return (
     <AuthContext.Provider 
       value={{ 
@@ -172,7 +173,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         register, 
         logout, 
         updateProfile, 
-        changePassword 
+        changePassword,
+        syncUser
       }}
     >
       {children}

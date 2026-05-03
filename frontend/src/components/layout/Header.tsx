@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { Search, Moon, Sun, LogOut, Menu, X } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { useTranslation } from "@/i18n/LanguageContext";
-import { useAuth } from "@/context/AuthContext";
+import { useTranslation } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Header() {
   const [theme, setTheme] = useState<"light" | "dark">(() => {
@@ -35,7 +35,7 @@ export default function Header() {
       
       // Update active nav based on scroll position
       // Order MUST match the actual visual order on the page
-      const sections = ["home", "chat", "trends", "analytics", "campaigns", "reports"];
+      const sections = ["home", "chat", "trends", "analytics", "features", "pricing", "campaigns", "reports"];
       
       // We check from bottom to top to find the first section that is near the top of the viewport
       for (let i = sections.length - 1; i >= 0; i--) {
@@ -43,8 +43,8 @@ export default function Header() {
         const element = document.getElementById(section);
         if (element) {
           const rect = element.getBoundingClientRect();
-          // 200px offset to trigger slightly before the section hits the exact top
-          if (rect.top <= 200) {
+          // Trigger when the section crosses the middle of the viewport
+          if (rect.top <= window.innerHeight / 2) {
             setActiveSection(section);
             break;
           }
@@ -99,8 +99,10 @@ export default function Header() {
   const navItems = [
     { label: t("header.home"), id: "home" },
     { label: t("header.trends"), id: "trends" },
-    { label: t("header.campaigns"), id: "campaigns" },
     { label: t("header.analytics"), id: "analytics" },
+    { label: t("header.features") || "Chức năng", id: "features" },
+    { label: t("header.pricing") || "Gói AI", id: "pricing" },
+    { label: t("header.campaigns"), id: "campaigns" },
     { label: t("header.reports"), id: "reports" },
   ];
 
@@ -122,7 +124,7 @@ export default function Header() {
           <div className="flex-1 flex items-center justify-start transition-all duration-300">
             <span
               id="app-logo"
-              className="cursor-pointer origin-left hover:opacity-90 transition-opacity text-2xl sm:text-3xl text-[#E8734A] dark:text-white px-2"
+              className="cursor-pointer origin-left hover:opacity-90 transition-opacity text-2xl sm:text-3xl text-[#E8734A] dark:text-white px-2 whitespace-nowrap"
               onClick={() => {
                 window.scrollTo({ top: 0, behavior: "smooth" });
                 setActiveSection("home");
@@ -235,7 +237,7 @@ export default function Header() {
 
       {/* Mobile menu drawer */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-[60] lg:hidden" onClick={() => setMobileMenuOpen(false)}>
+        <div className="fixed inset-0 z-60 lg:hidden" onClick={() => setMobileMenuOpen(false)}>
           <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" />
           <div
             className="absolute top-0 right-0 h-full w-[80vw] max-w-[320px] bg-white dark:bg-slate-900 shadow-2xl flex flex-col pt-[88px] px-5 pb-8 overflow-y-auto"

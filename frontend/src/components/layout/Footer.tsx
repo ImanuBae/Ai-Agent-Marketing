@@ -1,6 +1,6 @@
 import { Mail, Phone } from "lucide-react";
 import Image from "next/image";
-import { useTranslation } from "@/i18n/LanguageContext";
+import { useTranslation } from "@/contexts/LanguageContext";
 
 export default function Footer() {
   const { t } = useTranslation();

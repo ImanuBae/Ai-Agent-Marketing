@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
+import QuotaIndicator from "@/components/dashboard/QuotaIndicator";
 
 export default function DashboardSidebar() {
   const pathname = usePathname();
@@ -93,6 +94,8 @@ export default function DashboardSidebar() {
           </div>
         </div>
       </div>
+
+      {!isCollapsed && <QuotaIndicator />}
 
       <div className="p-4 border-t border-gray-200 dark:border-white/5">
         <Link

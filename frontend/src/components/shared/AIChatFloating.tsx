@@ -103,7 +103,7 @@ export default function AIChatFloating() {
     <>
       {/* Chat Popup Window */}
       <div
-        className={`fixed bottom-24 right-6 z-[999] flex flex-col transition-all duration-300 origin-bottom-right ${
+        className={`fixed bottom-24 right-6 z-999 flex flex-col transition-all duration-300 origin-bottom-right ${
           isOpen && !isMinimized
             ? "opacity-100 scale-100 pointer-events-auto"
             : "opacity-0 scale-95 pointer-events-none"
@@ -235,7 +235,7 @@ export default function AIChatFloating() {
       {/* Minimized bar */}
       {isOpen && isMinimized && (
         <div
-          className="fixed bottom-24 right-6 z-[999] cursor-pointer"
+          className="fixed bottom-24 right-6 z-999 cursor-pointer"
           onClick={() => { setIsMinimized(false); setHasNewMessage(false); }}
         >
           <div className="flex items-center gap-3 px-4 py-3 rounded-2xl accent-gradient shadow-xl shadow-[#E8734A]/30 border border-white/20">
@@ -253,7 +253,7 @@ export default function AIChatFloating() {
       {!isOpen && (
         <button
           onClick={handleOpen}
-          className="fixed bottom-6 right-6 z-[999] group"
+          className="fixed bottom-6 right-6 z-999 group"
           aria-label="Mở AI Chat"
         >
           {/* Pulse ring */}

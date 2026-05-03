@@ -196,7 +196,7 @@ export default function ContentAIPage() {
           {/* Output Card */}
           <div ref={outputRef} className="flex-1 bg-white dark:bg-slate-900 rounded-[32px] shadow-sm border border-gray-200 dark:border-white/5 flex flex-col overflow-hidden relative">
             {/* Header */}
-            <div className="p-4 sm:px-6 border-b border-gray-100 dark:border-white/5 flex items-center justify-between bg-gray-50/50 dark:bg-white/[0.02]">
+            <div className="p-4 sm:px-6 border-b border-gray-100 dark:border-white/5 flex items-center justify-between bg-gray-50/50 dark:bg-white/2">
               <div className="flex items-center gap-2">
                 <Sparkles size={18} className={result ? "text-emerald-500" : "text-gray-400"} />
                 <span className="font-bold text-sm text-gray-900 dark:text-white">
@@ -267,7 +267,7 @@ export default function ContentAIPage() {
 
             {/* Footer Actions */}
             {result && (
-              <div className="p-4 border-t border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02] flex items-center justify-between">
+              <div className="p-4 border-t border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/2 flex items-center justify-between">
                 <div className="relative flex items-center">
                   <input 
                     type="file" 
