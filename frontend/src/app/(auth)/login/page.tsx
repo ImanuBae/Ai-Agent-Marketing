@@ -98,19 +98,19 @@ export default function LoginPage() {
           {/* Social Login */}
           <div className="grid grid-cols-2 gap-3 mb-5">
             <button className="flex items-center justify-center gap-2 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 hover:border-[#E8734A]/40 hover:bg-[#E8734A]/5 transition-all text-sm font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-800 shadow-sm group">
-              <Image src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width={18} height={18} className="w-4.5 h-4.5" />
+              <Image src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" width={18} height={18} style={{ width: '18px', height: '18px' }} />
               Google
             </button>
             <button className="flex items-center justify-center gap-2 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 hover:border-[#E8734A]/40 hover:bg-[#E8734A]/5 transition-all text-sm font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-800 shadow-sm group">
-              <Image src="https://www.svgrepo.com/show/475647/facebook-color.svg" alt="Facebook" width={18} height={18} className="w-4.5 h-4.5" />
+              <Image src="https://www.svgrepo.com/show/475647/facebook-color.svg" alt="Facebook" width={18} height={18} style={{ width: '18px', height: '18px' }} />
               Facebook
             </button>
           </div>
 
           <div className="relative flex items-center mb-5">
-            <div className="flex-grow h-px" style={{ background: "linear-gradient(to right, transparent, #e5e7eb, transparent)" }} />
+            <div className="grow h-px" style={{ background: "linear-gradient(to right, transparent, #e5e7eb, transparent)" }} />
             <span className="mx-3 text-xs text-gray-400 dark:text-gray-500 font-semibold uppercase tracking-wider whitespace-nowrap">hoặc đăng nhập bằng email</span>
-            <div className="flex-grow h-px" style={{ background: "linear-gradient(to right, #e5e7eb, transparent)" }} />
+            <div className="grow h-px" style={{ background: "linear-gradient(to right, #e5e7eb, transparent)" }} />
           </div>
 
           {/* Form */}

@@ -257,9 +257,23 @@ export default function AnalyticsPage() {
                 )}
               </div>
               {data.engagement.trackedPosts === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-6">
-                  Chưa có dữ liệu tương tác. Nhập chỉ số bài đăng để AI học.
-                </p>
+                <div className="flex flex-col items-center text-center py-4 gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-[#E8734A]/10 flex items-center justify-center">
+                    <TrendingUp size={22} className="text-[#E8734A]" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">AI chưa có dữ liệu để học</p>
+                    <p className="text-xs text-gray-400 leading-relaxed">
+                      Đăng bài → Nhập chỉ số thực → AI học → Gợi ý giờ vàng
+                    </p>
+                  </div>
+                  <a
+                    href="/dashboard/schedule"
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#E8734A] text-white text-xs font-bold hover:opacity-90 transition"
+                  >
+                    Đi tới Lịch đăng →
+                  </a>
+                </div>
               ) : (
                 <div className="grid grid-cols-2 gap-4">
                   {[

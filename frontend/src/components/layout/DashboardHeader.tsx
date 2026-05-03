@@ -119,7 +119,9 @@ export default function DashboardHeader() {
               alt="Avatar" 
               width={32} 
               height={32} 
-              className="w-8 h-8 rounded-full border border-gray-100 dark:border-white/10" 
+              className="w-8 h-8 rounded-full border border-gray-100 dark:border-white/10"
+              style={{ width: '32px', height: '32px' }}
+              unoptimized={user?.avatar?.startsWith('data:') ?? false}
             />
             <div className="hidden sm:block text-left">
               <p className="text-[13px] font-bold text-gray-900 dark:text-white leading-tight">{user?.name || 'Loading...'}</p>

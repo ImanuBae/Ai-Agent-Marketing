@@ -164,7 +164,7 @@ export default function AdminUsersPage() {
             <tbody className="divide-y divide-white/5">
               {users.length > 0 ? (
                 users.map((user) => (
-                  <tr key={user.id} className="hover:bg-white/[0.02] transition-colors group">
+                  <tr key={user.id} className="hover:bg-white/2 transition-colors group">
                     <td className="px-8 py-5">
                       <div className="flex items-center gap-4">
                         <Image 
@@ -173,6 +173,8 @@ export default function AdminUsersPage() {
                           width={44} 
                           height={44} 
                           className="rounded-full ring-2 ring-white/10 group-hover:ring-[#E8734A]/50 transition-all"
+                          style={{ width: '44px', height: '44px' }}
+                          unoptimized={user.avatar?.startsWith('data:') ?? false}
                         />
                         <div>
                           <p className="font-bold text-white group-hover:text-[#E8734A] transition-colors uppercase tracking-tight">{user.name}</p>
@@ -249,7 +251,7 @@ export default function AdminUsersPage() {
         
         {/* Pagination bar */}
         {pagination.totalPages > 1 && (
-          <div className="px-8 py-5 bg-white/[0.03] border-t border-white/5 flex items-center justify-between">
+          <div className="px-8 py-5 bg-white/3 border-t border-white/5 flex items-center justify-between">
             <p className="text-xs text-gray-500 font-medium">
               Hiển thị {(pagination.page - 1) * pagination.limit + 1} đến {Math.min(pagination.page * pagination.limit, pagination.total)} trong tổng số {pagination.total} người dùng
             </p>

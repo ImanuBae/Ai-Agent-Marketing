@@ -29,7 +29,7 @@ export default function AuthModals({ isOpen, onClose, type: initialType }: AuthM
   if (!isOpen) return null;
 
   return (
-    <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 transition-all duration-300 ${show ? "opacity-100" : "opacity-0"}`}>
+    <div className={`fixed inset-0 z-100 flex items-center justify-center p-4 transition-all duration-300 ${show ? "opacity-100" : "opacity-0"}`}>
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/40 backdrop-blur-sm cursor-pointer"
@@ -93,9 +93,9 @@ export default function AuthModals({ isOpen, onClose, type: initialType }: AuthM
           </button>
 
           <div className="relative flex items-center py-2">
-            <div className="flex-grow border-t border-gray-200 dark:border-white/10"></div>
-            <span className="flex-shrink-0 mx-4 text-gray-400 text-xs font-medium">{t("auth.or")}</span>
-            <div className="flex-grow border-t border-gray-200 dark:border-white/10"></div>
+            <div className="grow border-t border-gray-200 dark:border-white/10"></div>
+            <span className="shrink-0 mx-4 text-gray-400 text-xs font-medium">{t("auth.or")}</span>
+            <div className="grow border-t border-gray-200 dark:border-white/10"></div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -104,7 +104,7 @@ export default function AuthModals({ isOpen, onClose, type: initialType }: AuthM
               { name: "Facebook", icon: "https://www.svgrepo.com/show/475647/facebook-color.svg" }
             ].map(social => (
               <button key={social.name} className="flex items-center justify-center gap-2 border border-gray-200 dark:border-white/10 rounded-lg px-4 py-2 hover:bg-gray-50 dark:hover:bg-white/5 transition text-sm font-medium text-gray-700 dark:text-gray-300">
-                <Image src={social.icon} alt={social.name} width={16} height={16} className="w-4 h-4" /> {social.name}
+                <Image src={social.icon} alt={social.name} width={16} height={16} className="w-4 h-4" style={{ width: 'auto', height: 'auto' }} /> {social.name}
               </button>
             ))}
           </div>

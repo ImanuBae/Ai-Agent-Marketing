@@ -12,7 +12,12 @@ import {
   MoreVertical,
   PenTool,
   RefreshCw,
+  GitCompare,
+  Plus,
+  X,
+  Loader2,
 } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import api from "@/lib/axios";
 
 interface TrendKeyword {
@@ -33,12 +38,22 @@ interface TrendIdea {
 
 export default function TrendsPage() {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState<"keywords" | "compare">("keywords");
   const [trends, setTrends] = useState<TrendKeyword[]>([]);
   const [ideas, setIdeas] = useState<TrendIdea[]>([]);
   const [loadingTrends, setLoadingTrends] = useState(true);
   const [loadingIdeas, setLoadingIdeas] = useState(false);
   const [search, setSearch] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  // Compare tab state
+  const [compareKeywords, setCompareKeywords] = useState<string[]>(["AI Marketing", "Content Marketing"]);
+  const [compareInput, setCompareInput] = useState("");
+  const [compareData, setCompareData] = useState<Record<string, string | number>[]>([]);
+  const [loadingCompare, setLoadingCompare] = useState(false);
+  const [compareError, setCompareError] = useState<string | null>(null);
+
+  const COMPARE_COLORS = ["#E8734A", "#3B82F6", "#10B981", "#8B5CF6", "#F59E0B"];
 
   const fetchTrends = async () => {
     setLoadingTrends(true);
@@ -72,13 +87,46 @@ export default function TrendsPage() {
     }
   };
 
-  useEffect(() => {
-    fetchTrends();
-  }, []);
+  const fetchCompare = async () => {
+    if (compareKeywords.length < 2) return;
+    setLoadingCompare(true);
+    setCompareError(null);
+    try {
+      const res = await api.get("/trends/compare", {
+        params: { keywords: compareKeywords.join(","), geo: "VN" },
+      });
+      // Backend: sendSuccess(res, msg, { data }) → res.data = {success, data: { data: [...] }}
+      const raw: { keyword: string; data: { time: string; value: number }[] }[] =
+        res.data.data?.data ?? res.data.data ?? [];
+      if (raw.length > 0 && raw[0].data.length > 0) {
+        const timeline = raw[0].data.map((pt, idx) => {
+          const row: Record<string, string | number> = { date: pt.time };
+          raw.forEach(kw => { row[kw.keyword] = kw.data[idx]?.value ?? 0; });
+          return row;
+        });
+        setCompareData(timeline);
+      } else {
+        setCompareData([]);
+      }
+    } catch {
+      setCompareError("Không thể tải dữ liệu so sánh. Vui lòng thử lại.");
+    } finally {
+      setLoadingCompare(false);
+    }
+  };
+
+  useEffect(() => { fetchTrends(); }, []);
 
   const filtered = trends.filter((t) =>
     t.keyword.toLowerCase().includes(search.toLowerCase())
   );
+
+  const addCompareKeyword = () => {
+    const kw = compareInput.trim();
+    if (!kw || compareKeywords.includes(kw) || compareKeywords.length >= 5) return;
+    setCompareKeywords(prev => [...prev, kw]);
+    setCompareInput("");
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-700 pb-10 min-h-[calc(100vh-100px)]">
@@ -92,6 +140,30 @@ export default function TrendsPage() {
           <p className="text-gray-500 font-medium text-sm">
             Khám phá các từ khóa đang dẫn đầu xu hướng và nhận đề xuất từ AI.
           </p>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex items-center gap-1 bg-gray-100 dark:bg-white/5 p-1 rounded-2xl">
+          <button
+            onClick={() => setActiveTab("keywords")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+              activeTab === "keywords"
+                ? "bg-white dark:bg-slate-800 text-[#E8734A] shadow-sm"
+                : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+            }`}
+          >
+            <TrendingUp size={15} /> Từ khóa
+          </button>
+          <button
+            onClick={() => setActiveTab("compare")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+              activeTab === "compare"
+                ? "bg-white dark:bg-slate-800 text-[#E8734A] shadow-sm"
+                : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+            }`}
+          >
+            <GitCompare size={15} /> So sánh
+          </button>
         </div>
 
         <div className="flex items-center gap-2">
@@ -121,6 +193,8 @@ export default function TrendsPage() {
         </div>
       )}
 
+      {/* Keywords Tab */}
+      {activeTab === "keywords" && (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* Trends Table */}
@@ -142,7 +216,7 @@ export default function TrendsPage() {
             ) : (
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-gray-50/50 dark:bg-white/[0.02] border-b border-gray-100 dark:border-white/5">
+                  <tr className="bg-gray-50/50 dark:bg-white/2 border-b border-gray-100 dark:border-white/5">
                     <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Từ khóa</th>
                     <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Lưu lượng (Tháng)</th>
                     <th className="px-6 py-4 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Mức độ quan tâm</th>
@@ -153,7 +227,7 @@ export default function TrendsPage() {
                   {filtered.map((trend) => {
                     const isUp = trend.status === "up";
                     return (
-                      <tr key={trend.id} className="border-b border-gray-50 dark:border-white/[0.02] hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors group">
+                      <tr key={trend.id} className="border-b border-gray-50 dark:border-white/2 hover:bg-gray-50/50 dark:hover:bg-white/2 transition-colors group">
                         <td className="px-6 py-5">
                           <div className="flex items-center gap-3">
                             <div className={`flex items-center justify-center w-8 h-8 rounded-full font-bold text-xs ${
@@ -240,7 +314,7 @@ export default function TrendsPage() {
                       <span className="text-[10px] font-bold text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full shrink-0">Trùng khớp {idea.match}</span>
                     </div>
                     <h4 className="font-bold text-sm text-gray-900 dark:text-white leading-snug group-hover:text-[#E8734A] transition-colors line-clamp-2 w-full">{idea.title}</h4>
-                    <div className="mt-4 pt-3 border-t border-gray-100 dark:border-white/5 w-full flex-shrink-0">
+                    <div className="mt-4 pt-3 border-t border-gray-100 dark:border-white/5 w-full shrink-0">
                       <button
                         onClick={() => router.push("/dashboard/content")}
                         className="flex items-center justify-between w-full text-xs font-bold text-[#E8734A] hover:text-[#d6653e] hover:pl-1 transition-all"
@@ -265,6 +339,93 @@ export default function TrendsPage() {
         </div>
 
       </div>
+      )} {/* end keywords tab */}
+
+      {/* Compare Tab */}
+      {activeTab === "compare" && (
+        <div className="space-y-6">
+          {/* Keyword inputs */}
+          <div className="bg-white dark:bg-slate-900 rounded-[32px] shadow-sm border border-gray-200 dark:border-white/5 p-6">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">So sánh từ khóa</h3>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {compareKeywords.map((kw, i) => (
+                <span
+                  key={kw}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold text-white shadow-sm"
+                  style={{ background: COMPARE_COLORS[i] }}
+                >
+                  {kw}
+                  <button onClick={() => setCompareKeywords(prev => prev.filter(k => k !== kw))} className="hover:opacity-70 transition">
+                    <X size={12} />
+                  </button>
+                </span>
+              ))}
+              {compareKeywords.length < 5 && (
+                <div className="flex items-center gap-2">
+                  <input
+                    value={compareInput}
+                    onChange={e => setCompareInput(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && addCompareKeyword()}
+                    placeholder="Thêm từ khóa..."
+                    className="border border-gray-200 dark:border-white/10 rounded-full px-3 py-1.5 text-sm bg-gray-50 dark:bg-slate-800 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#E8734A]/30"
+                  />
+                  <button onClick={addCompareKeyword} className="p-1.5 rounded-full bg-[#E8734A] text-white hover:opacity-90 transition">
+                    <Plus size={14} />
+                  </button>
+                </div>
+              )}
+            </div>
+            <button
+              onClick={fetchCompare}
+              disabled={compareKeywords.length < 2 || loadingCompare}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#E8734A] text-white text-sm font-bold hover:opacity-90 disabled:opacity-50 transition"
+            >
+              {loadingCompare ? <Loader2 size={15} className="animate-spin" /> : <GitCompare size={15} />}
+              So sánh
+            </button>
+          </div>
+
+          {/* Chart */}
+          <div className="bg-white dark:bg-slate-900 rounded-[32px] shadow-sm border border-gray-200 dark:border-white/5 p-6">
+            {compareError && (
+              <p className="text-sm text-red-500 text-center py-8">{compareError}</p>
+            )}
+            {!compareError && compareData.length === 0 && !loadingCompare && (
+              <div className="text-center py-16">
+                <GitCompare size={40} className="text-gray-300 mx-auto mb-3" />
+                <p className="text-gray-400 font-medium">Nhấn "So sánh" để xem biểu đồ</p>
+              </div>
+            )}
+            {loadingCompare && (
+              <div className="flex items-center justify-center py-16">
+                <Loader2 size={32} className="animate-spin text-[#E8734A]" />
+              </div>
+            )}
+            {compareData.length > 0 && (
+              <ResponsiveContainer width="100%" height={350}>
+                <LineChart data={compareData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                  <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} />
+                  <Tooltip formatter={(value) => [`${value ?? ""}`, "Chỉ số"]} />
+                  <Legend />
+                  {compareKeywords.map((kw, i) => (
+                    <Line
+                      key={kw}
+                      type="monotone"
+                      dataKey={kw}
+                      stroke={COMPARE_COLORS[i]}
+                      strokeWidth={2.5}
+                      dot={false}
+                      activeDot={{ r: 5 }}
+                    />
+                  ))}
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

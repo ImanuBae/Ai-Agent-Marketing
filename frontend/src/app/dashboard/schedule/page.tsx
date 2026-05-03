@@ -12,6 +12,9 @@ import {
   X,
   Loader2,
   Sparkles,
+  BarChart2,
+  Edit2,
+  Check,
 } from "lucide-react";
 import api from "@/lib/axios";
 
@@ -153,6 +156,17 @@ export default function SchedulePage() {
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  // Engagement modal state
+  const [engagementSchedule, setEngagementSchedule] = useState<ScheduleItem | null>(null);
+  const [engagementData, setEngagementData] = useState({ likes: "", comments: "", clicks: "", impressions: "" });
+  const [engagementSubmitting, setEngagementSubmitting] = useState(false);
+  const [engagementDone, setEngagementDone] = useState<Set<string>>(new Set());
+
+  // Reschedule state
+  const [rescheduleId, setRescheduleId] = useState<string | null>(null);
+  const [rescheduleAt, setRescheduleAt] = useState("");
+  const [rescheduling, setRescheduling] = useState(false);
+
   // ── Fetch schedules for current month ──────────────────────────────────────
   const fetchSchedules = useCallback(async () => {
     setLoadingSchedules(true);
@@ -281,6 +295,57 @@ export default function SchedulePage() {
     }
   };
 
+  // ── Engagement ───────────────────────────────────────────────────────────────
+  const engagementScore = () => {
+    const l = Number(engagementData.likes) || 0;
+    const c = Number(engagementData.comments) || 0;
+    const cl = Number(engagementData.clicks) || 0;
+    const imp = Number(engagementData.impressions) || 1;
+    const ctr = cl / imp;
+    return Math.min(100, 0.4 * l + 0.3 * c + 0.2 * cl + 0.1 * ctr * 100).toFixed(1);
+  };
+
+  const handleEngagementSubmit = async () => {
+    if (!engagementSchedule) return;
+    setEngagementSubmitting(true);
+    try {
+      await api.post("schedule/engagement", {
+        contentId: engagementSchedule.contentId,
+        likes: Number(engagementData.likes) || 0,
+        comments: Number(engagementData.comments) || 0,
+        clicks: Number(engagementData.clicks) || 0,
+        impressions: Number(engagementData.impressions) || 0,
+      });
+      setEngagementDone(prev => new Set([...prev, engagementSchedule.id]));
+      setEngagementSchedule(null);
+      setEngagementData({ likes: "", comments: "", clicks: "", impressions: "" });
+    } catch {
+      alert("Không thể lưu chỉ số. Vui lòng thử lại.");
+    } finally {
+      setEngagementSubmitting(false);
+    }
+  };
+
+  // ── Reschedule ───────────────────────────────────────────────────────────────
+  const handleReschedule = async (id: string) => {
+    if (!rescheduleAt) return;
+    setRescheduling(true);
+    try {
+      await api.put(`schedule/${id}`, { scheduledAt: new Date(rescheduleAt).toISOString() });
+      setRescheduleId(null);
+      setRescheduleAt("");
+      fetchSchedules();
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === "object" && "response" in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined;
+      alert(msg ?? "Không thể đổi giờ. Kiểm tra lại thời gian.");
+    } finally {
+      setRescheduling(false);
+    }
+  };
+
   // ── Golden hours data ───────────────────────────────────────────────────────
   const goldenHours = [
     fbOptimal?.slots[0]
@@ -389,27 +454,72 @@ export default function SchedulePage() {
                             {day}
                           </span>
                           <div className="flex flex-col gap-1 overflow-hidden">
-                            {dayEvents.map(evt => (
-                              <div
-                                key={evt.id}
-                                title={`${evt.content.caption} — ${localTime(evt.scheduledAt)}`}
-                                className={`text-[10px] font-bold px-1.5 py-1 rounded-md text-white truncate cursor-pointer hover:opacity-80 transition flex items-center justify-between gap-1 group/evt ${PLATFORM_COLORS[evt.platform] ?? "bg-gray-500"}`}
-                              >
-                                <span className="truncate">
-                                  {localTime(evt.scheduledAt)} {evt.content.caption.slice(0, 12)}
-                                </span>
-                                {evt.status === "pending" && (
-                                  <button
-                                    onClick={e => { e.stopPropagation(); handleDelete(evt.id); }}
-                                    className="opacity-0 group-hover/evt:opacity-100 transition shrink-0"
+                            {dayEvents.map(evt => {
+                              const isRescheduling = rescheduleId === evt.id;
+                              return (
+                                <div key={evt.id} className="flex flex-col gap-0.5">
+                                  <div
+                                    title={`${evt.content.caption} — ${localTime(evt.scheduledAt)}`}
+                                    className={`text-[10px] font-bold px-1.5 py-1 rounded-md text-white truncate cursor-pointer hover:opacity-80 transition flex items-center justify-between gap-1 group/evt ${PLATFORM_COLORS[evt.platform] ?? "bg-gray-500"}`}
                                   >
-                                    {deletingId === evt.id
-                                      ? <Loader2 size={8} className="animate-spin" />
-                                      : <X size={8} />}
-                                  </button>
-                                )}
-                              </div>
-                            ))}
+                                    <span className="truncate">
+                                      {localTime(evt.scheduledAt)} {evt.content.caption.slice(0, 12)}
+                                      {engagementDone.has(evt.id) && (
+                                        <Check size={8} className="inline ml-1 text-green-300" />
+                                      )}
+                                    </span>
+                                    <div className="flex items-center gap-0.5 shrink-0">
+                                      {evt.status === "pending" && (
+                                        <button
+                                          onClick={e => { e.stopPropagation(); setRescheduleId(isRescheduling ? null : evt.id); setRescheduleAt(""); }}
+                                          className="opacity-0 group-hover/evt:opacity-100 transition"
+                                          title="Đổi giờ"
+                                        >
+                                          <Edit2 size={8} />
+                                        </button>
+                                      )}
+                                      {evt.status === "pending" && (
+                                        <button
+                                          onClick={e => { e.stopPropagation(); handleDelete(evt.id); }}
+                                          className="opacity-0 group-hover/evt:opacity-100 transition"
+                                          title="Hủy lịch"
+                                        >
+                                          {deletingId === evt.id ? <Loader2 size={8} className="animate-spin" /> : <X size={8} />}
+                                        </button>
+                                      )}
+                                      {evt.status === "published" && !engagementDone.has(evt.id) && (
+                                        <button
+                                          onClick={e => { e.stopPropagation(); setEngagementSchedule(evt); setEngagementData({ likes: "", comments: "", clicks: "", impressions: "" }); }}
+                                          className="opacity-0 group-hover/evt:opacity-100 transition"
+                                          title="Nhập chỉ số"
+                                        >
+                                          <BarChart2 size={8} />
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+                                  {/* Reschedule inline popover */}
+                                  {isRescheduling && (
+                                    <div className="bg-white dark:bg-slate-800 border border-[#E8734A]/30 rounded-xl p-2 shadow-lg flex flex-col gap-1">
+                                      <input
+                                        type="datetime-local"
+                                        value={rescheduleAt}
+                                        onChange={e => setRescheduleAt(e.target.value)}
+                                        className="text-[9px] w-full rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-700 px-1.5 py-1 text-gray-800 dark:text-white focus:outline-none"
+                                      />
+                                      <button
+                                        onClick={() => handleReschedule(evt.id)}
+                                        disabled={!rescheduleAt || rescheduling}
+                                        className="text-[9px] font-bold bg-[#E8734A] text-white rounded-lg py-1 disabled:opacity-50 flex items-center justify-center gap-1"
+                                      >
+                                        {rescheduling ? <Loader2 size={8} className="animate-spin" /> : <Check size={8} />}
+                                        Xác nhận
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       )}
@@ -581,6 +691,72 @@ export default function SchedulePage() {
                   ? <Loader2 size={16} className="animate-spin" />
                   : <Sparkles size={16} />}
                 {scheduledAt ? "Lên lịch" : "AI Tối ưu giờ"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Engagement Modal */}
+      {engagementSchedule && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-[32px] shadow-2xl w-full max-w-md border border-gray-200 dark:border-white/10 overflow-hidden">
+            <div className="flex items-center justify-between px-8 py-6 border-b border-gray-100 dark:border-white/5">
+              <div>
+                <h2 className="text-lg font-black text-gray-900 dark:text-white">Nhập chỉ số bài đăng</h2>
+                <p className="text-xs text-gray-400 mt-0.5">AI sẽ học để gợi ý giờ tốt hơn</p>
+              </div>
+              <button onClick={() => setEngagementSchedule(null)} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-white/10 text-gray-500 transition">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-8 space-y-4">
+              <p className="text-sm font-bold text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-white/5 rounded-xl px-4 py-2 truncate">
+                {engagementSchedule.content.caption.slice(0, 60)}{engagementSchedule.content.caption.length > 60 ? "…" : ""}
+              </p>
+              {([
+                { key: "likes", label: "Lượt thích", icon: "👍" },
+                { key: "comments", label: "Bình luận", icon: "💬" },
+                { key: "clicks", label: "Lượt click", icon: "🖱️" },
+                { key: "impressions", label: "Lượt hiển thị", icon: "👁️" },
+              ] as const).map(field => (
+                <div key={field.key} className="flex items-center gap-3">
+                  <span className="text-lg w-8 text-center">{field.icon}</span>
+                  <label className="text-sm font-bold text-gray-700 dark:text-gray-300 w-28 shrink-0">{field.label}</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={engagementData[field.key]}
+                    onChange={e => setEngagementData(prev => ({ ...prev, [field.key]: e.target.value }))}
+                    placeholder="0"
+                    className="flex-1 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-slate-800 px-4 py-2.5 text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#E8734A]/50"
+                  />
+                </div>
+              ))}
+              <div className="bg-[#FDE8DF]/50 dark:bg-[#E8734A]/10 rounded-2xl p-4 border border-[#E8734A]/20">
+                <p className="text-xs text-gray-500 mb-1">Score dự kiến</p>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-2 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-[#E8734A] rounded-full transition-all duration-500"
+                      style={{ width: `${Math.min(100, Number(engagementScore()))}%` }}
+                    />
+                  </div>
+                  <span className="text-lg font-black text-[#E8734A]">{engagementScore()}</span>
+                  <span className="text-xs text-gray-400">/100</span>
+                </div>
+              </div>
+            </div>
+            <div className="px-8 pb-8 flex gap-3">
+              <button onClick={() => setEngagementSchedule(null)} className="flex-1 py-3 rounded-xl border border-gray-200 dark:border-white/10 text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition">
+                Hủy
+              </button>
+              <button
+                onClick={handleEngagementSubmit}
+                disabled={engagementSubmitting}
+                className="flex-1 py-3 rounded-xl bg-[#E8734A] text-white text-sm font-bold shadow-md shadow-[#E8734A]/20 hover:opacity-90 disabled:opacity-50 transition flex items-center justify-center gap-2"
+              >
+                {engagementSubmitting ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                Lưu &amp; Học AI
               </button>
             </div>
           </div>

@@ -42,7 +42,7 @@ export const getOverview = async (req: Request, res: Response) => {
         // Content created per day — last 30 days
         prisma.$queryRaw<{ date: string; count: bigint }[]>`
           SELECT DATE("createdAt") AS date, COUNT(*) AS count
-          FROM "Content"
+          FROM "contents"
           WHERE "userId" = ${userId}
             AND "createdAt" >= NOW() - INTERVAL '30 days'
           GROUP BY DATE("createdAt")

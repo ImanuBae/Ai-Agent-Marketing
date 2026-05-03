@@ -31,6 +31,7 @@ export default function DashboardPage() {
   const [activities, setActivities] = useState<ContentItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [chartData, setChartData] = useState<number[]>([0, 0, 0, 0, 0, 0, 0]);
+  const [avgScore, setAvgScore] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -64,7 +65,17 @@ export default function DashboardPage() {
       }
     };
 
+    const fetchAnalytics = async () => {
+      try {
+        const res = await api.get("/analytics/overview");
+        if (res.data.success) {
+          setAvgScore(res.data.data.engagement?.avgScore ?? null);
+        }
+      } catch { /* non-blocking */ }
+    };
+
     fetchDashboardData();
+    fetchAnalytics();
   }, []);
 
   const statCards = [
@@ -72,9 +83,9 @@ export default function DashboardPage() {
     { name: "Đang lên lịch", value: stats.scheduled.toString(), change: `${stats.draft} nháp`, trending: "neutral" as const, icon: CalendarClock, color: "text-amber-500", bg: "bg-amber-500/10" },
     { name: "Đã xuất bản", value: stats.published.toString(), change: "thành công", trending: "up" as const, icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/10" },
     {
-      name: "AI Tokens dùng",
-      value: stats.total > 0 ? `~${(stats.total * 850).toLocaleString()}` : "0",
-      change: "ước tính",
+      name: "AI Score TB",
+      value: avgScore !== null ? avgScore.toFixed(1) : "--",
+      change: avgScore !== null ? "dựa trên engagement" : "Chưa có dữ liệu",
       trending: "neutral" as const,
       icon: Sparkles,
       color: "text-[#E8734A]",

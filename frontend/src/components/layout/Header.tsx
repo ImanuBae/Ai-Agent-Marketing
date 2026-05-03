@@ -32,11 +32,11 @@ export default function Header() {
 
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
-      
+
       // Update active nav based on scroll position
       // Order MUST match the actual visual order on the page
       const sections = ["home", "chat", "trends", "analytics", "features", "pricing", "campaigns", "reports"];
-      
+
       // We check from bottom to top to find the first section that is near the top of the viewport
       for (let i = sections.length - 1; i >= 0; i--) {
         const section = sections[i];
@@ -109,17 +109,16 @@ export default function Header() {
   return (
     <>
       <header
-        className={`fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] sm:w-[calc(100%-3rem)] max-w-6xl z-50 transition-all duration-300 rounded-[20px] ${
-          isScrolled
+        className={`fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] sm:w-[calc(100%-3rem)] max-w-6xl z-50 transition-all duration-300 rounded-[20px] ${isScrolled
             ? "bg-white/95 dark:bg-[#0f172a]/95 backdrop-blur-xl border border-gray-200 shadow-xl py-2 px-4 shadow-[#E8734A]/5"
             : "bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-gray-100 shadow-md py-3 px-4 sm:px-6 dark:border-white/10"
-        }`}
+          }`}
         style={{
           boxShadow: isScrolled ? "0 10px 40px -10px rgba(0,0,0,0.05)" : "none"
         }}
       >
         <div className="flex items-center justify-between gap-2 lg:gap-4 transition-all duration-300 w-full">
-          
+
           {/* 1. Left - Logo */}
           <div className="flex-1 flex items-center justify-start transition-all duration-300">
             <span
@@ -141,11 +140,10 @@ export default function Header() {
               <button
                 key={item.id}
                 onClick={() => scrollToSection(item.id)}
-                className={`px-3 py-2 text-sm font-semibold transition-all rounded-lg ${
-                  activeSection === item.id
+                className={`px-3 py-2 text-sm font-semibold transition-all rounded-lg ${activeSection === item.id
                     ? "text-[#E8734A] bg-[#E8734A]/5"
                     : "text-gray-600 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/5"
-                }`}
+                  }`}
               >
                 {item.label}
               </button>
@@ -154,7 +152,7 @@ export default function Header() {
 
           {/* 3. Right - Actions */}
           <div className="flex-1 flex items-center justify-end gap-2 sm:gap-3">
-            
+
             {/* Lang & Theme toggles */}
             <div className="flex items-center gap-1 sm:gap-2">
               <button
@@ -244,7 +242,7 @@ export default function Header() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close button inner */}
-            <button 
+            <button
               className="absolute top-5 right-5 p-2 bg-gray-100 rounded-full text-gray-500 hover:bg-gray-200"
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -258,11 +256,10 @@ export default function Header() {
                 <button
                   key={item.id}
                   onClick={() => scrollToSection(item.id)}
-                  className={`w-full text-left px-4 py-3 rounded-xl font-semibold text-sm transition-all ${
-                    activeSection === item.id
+                  className={`w-full text-left px-4 py-3 rounded-xl font-semibold text-sm transition-all ${activeSection === item.id
                       ? "text-[#E8734A] bg-[#E8734A]/5"
                       : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5"
-                  }`}
+                    }`}
                 >
                   {item.label}
                 </button>
@@ -272,16 +269,16 @@ export default function Header() {
             {/* Divider */}
             <div className="h-px bg-gray-100 dark:bg-white/10 mb-6" />
 
-               {/* Mobile search */}
-               <div className="relative mb-6">
-                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 px-2">Tìm kiếm</p>
+            {/* Mobile search */}
+            <div className="relative mb-6">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 px-2">Tìm kiếm</p>
               <div className="relative">
-                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                 <input
-                   type="text"
-                   placeholder={t("header.search")}
-                   className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#E8734A]/30 focus:border-[#E8734A] dark:text-white placeholder-gray-400 transition-all"
-                 />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder={t("header.search")}
+                  className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#E8734A]/30 focus:border-[#E8734A] dark:text-white placeholder-gray-400 transition-all"
+                />
               </div>
             </div>
 

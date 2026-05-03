@@ -11,7 +11,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Search,
-  Home
+  Home,
+  BarChart2
 } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
@@ -26,6 +27,7 @@ export default function DashboardSidebar() {
     { name: "Content AI", icon: MessageSquare, href: "/dashboard/content" },
     { name: "Market Trends", icon: TrendingUp, href: "/dashboard/trends" },
     { name: "Lịch đăng", icon: Calendar, href: "/dashboard/schedule" },
+    { name: "Analytics", icon: BarChart2, href: "/dashboard/analytics" },
     { name: "Social Connect", icon: Share2, href: "/dashboard/social" },
   ];
 
