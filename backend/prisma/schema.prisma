@@ -106,16 +106,18 @@ model TimeSlotStats {
 }
 
 model SocialAccount {
-  id          String    @id @default(cuid())
-  userId      String
-  platform    String
-  accessToken String
-  accountName String
-  accountId   String
-  expiresAt   DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String    @id @default(cuid())
+  userId       String
+  platform     String
+  accessToken  String    // AES-256-GCM encrypted
+  refreshToken String?   // AES-256-GCM encrypted
+  accountName  String
+  accountId    String
+  avatarUrl    String?
+  expiresAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, platform])
   @@map("social_accounts")
