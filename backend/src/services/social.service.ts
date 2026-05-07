@@ -67,7 +67,7 @@ const getFacebookProfile = async (accessToken: string): Promise<SocialProfile> =
 
 // ─── Instagram ────────────────────────────────────────────────────────────────
 
-const IG_AUTH_BASE = 'https://api.instagram.com/oauth/authorize';
+const IG_AUTH_BASE = 'https://www.instagram.com/oauth/authorize';
 const IG_TOKEN_URL = 'https://api.instagram.com/oauth/access_token';
 const IG_LONGTOKEN_URL = 'https://graph.instagram.com/access_token';
 const IG_GRAPH_ME = 'https://graph.instagram.com/me';
