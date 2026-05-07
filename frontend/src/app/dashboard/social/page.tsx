@@ -34,6 +34,16 @@ const PLATFORMS = [
     supported: true,
   },
   {
+    id: "instagram",
+    name: "Instagram Business",
+    avatar: "IG",
+    color: "bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#FCAF45]",
+    bgColor: "bg-pink-50 dark:bg-pink-500/10 border-pink-200 dark:border-pink-500/20",
+    textColor: "text-pink-600",
+    permissions: ["Đăng ảnh & video", "Đọc Insights", "Quản lý bình luận"],
+    supported: true,
+  },
+  {
     id: "tiktok",
     name: "TikTok Business",
     avatar: "T",
