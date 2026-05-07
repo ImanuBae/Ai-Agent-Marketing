@@ -87,6 +87,38 @@ app.get('/api/public/stats', async (_req: Request, res: Response) => {
   }
 });
 
+app.get('/privacy-policy', (_req: Request, res: Response) => {
+  res.send(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Privacy Policy</title></head><body>
+<h1>Privacy Policy</h1>
+<p>Last updated: May 2025</p>
+<p>AiAgentMarketing ("we", "our", or "us") operates this application. This page informs you of our policies regarding the collection, use, and disclosure of personal data.</p>
+<h2>Data We Collect</h2>
+<p>We collect data you provide when connecting your social media accounts, including profile information and content you create through our platform.</p>
+<h2>How We Use Your Data</h2>
+<p>We use your data solely to provide the marketing automation services you request, including scheduling and publishing content on your behalf.</p>
+<h2>Data Deletion</h2>
+<p>You may request deletion of your data at any time by contacting us or using the in-app data deletion feature.</p>
+<h2>Contact</h2>
+<p>Email: imanutttt@gmail.com</p>
+</body></html>`);
+});
+
+app.get('/terms-of-service', (_req: Request, res: Response) => {
+  res.send(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Terms of Service</title></head><body>
+<h1>Terms of Service</h1>
+<p>Last updated: May 2025</p>
+<p>By using AiAgentMarketing, you agree to these terms. You are responsible for all content posted through your connected accounts.</p>
+<h2>Use of Service</h2>
+<p>This service is provided for lawful marketing purposes only. You must not use this service to post illegal, harmful, or misleading content.</p>
+<h2>Account Security</h2>
+<p>You are responsible for maintaining the security of your account credentials.</p>
+<h2>Termination</h2>
+<p>We reserve the right to terminate accounts that violate these terms.</p>
+<h2>Contact</h2>
+<p>Email: imanutttt@gmail.com</p>
+</body></html>`);
+});
+
 // ── 404 Handler ────────────────────────────────────────────────
 app.use((_req: Request, res: Response) => {
   res.status(404).json({ success: false, message: 'Endpoint không tồn tại' });
