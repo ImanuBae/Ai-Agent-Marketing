@@ -7,6 +7,8 @@ import {
   handleCallback,
   getAccounts,
   disconnect,
+  handleDataDeletion,
+  dataDeletionStatus,
 } from '../controllers/social.controller';
 
 const router = Router();
@@ -64,6 +66,10 @@ const router = Router();
  *                     url:
  *                       type: string
  */
+// Meta Data Deletion Callback — no auth, called by Meta's servers
+router.post('/data-deletion', handleDataDeletion);
+router.get('/data-deletion/:confirmationCode', dataDeletionStatus);
+
 router.get('/auth-url/:platform', authenticate, getAuthUrl);
 
 router.get('/connect/facebook', authenticate, connectFacebook);
