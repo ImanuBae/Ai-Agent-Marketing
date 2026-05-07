@@ -4,6 +4,7 @@ import {
   getAuthUrl,
   connectFacebook,
   connectThreads,
+  connectInstagram,
   handleCallback,
   getAccounts,
   disconnect,
@@ -92,6 +93,8 @@ router.get('/connect/facebook', authenticate, connectFacebook);
  *         description: Lỗi server
  */
 router.get('/connect/threads', authenticate, connectThreads);
+
+router.get('/connect/instagram', authenticate, connectInstagram);
 
 /**
  * @swagger

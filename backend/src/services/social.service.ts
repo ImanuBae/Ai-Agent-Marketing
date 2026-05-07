@@ -65,6 +65,72 @@ const getFacebookProfile = async (accessToken: string): Promise<SocialProfile> =
   };
 };
 
+// ─── Instagram ────────────────────────────────────────────────────────────────
+
+export const getInstagramAuthUrl = async (userId: string): Promise<string> => {
+  const state = await generateState(userId);
+  const params = new URLSearchParams({
+    client_id: process.env.FACEBOOK_CLIENT_ID!,
+    redirect_uri: getCallbackUrl('instagram'),
+    scope: 'instagram_basic,instagram_content_publish,pages_show_list,pages_read_engagement',
+    state,
+    response_type: 'code',
+  });
+  return `${FB_AUTH_BASE}?${params}`;
+};
+
+const exchangeInstagramCode = async (code: string): Promise<OAuthTokens> => {
+  const { data: shortToken } = await axios.get<{ access_token: string }>(FB_TOKEN_URL, {
+    params: {
+      client_id: process.env.FACEBOOK_CLIENT_ID,
+      client_secret: process.env.FACEBOOK_CLIENT_SECRET,
+      redirect_uri: getCallbackUrl('instagram'),
+      code,
+    },
+  });
+
+  const { data: longToken } = await axios.get<{ access_token: string; expires_in?: number }>(
+    FB_TOKEN_URL,
+    {
+      params: {
+        grant_type: 'fb_exchange_token',
+        client_id: process.env.FACEBOOK_CLIENT_ID,
+        client_secret: process.env.FACEBOOK_CLIENT_SECRET,
+        fb_exchange_token: shortToken.access_token,
+      },
+    },
+  );
+
+  return { accessToken: longToken.access_token, expiresIn: longToken.expires_in };
+};
+
+const getInstagramProfile = async (accessToken: string): Promise<SocialProfile> => {
+  const { data } = await axios.get<{
+    data?: Array<{
+      id: string;
+      name: string;
+      instagram_business_account?: { id: string; name?: string; username?: string; profile_picture_url?: string };
+    }>;
+  }>(`https://graph.facebook.com/${FB_VERSION}/me/accounts`, {
+    params: {
+      fields: 'id,name,instagram_business_account{id,name,username,profile_picture_url}',
+      access_token: accessToken,
+    },
+  });
+
+  const pageWithIG = data.data?.find((p) => p.instagram_business_account);
+  if (!pageWithIG?.instagram_business_account) {
+    throw new Error('Không tìm thấy tài khoản Instagram Business liên kết với Facebook Page');
+  }
+
+  const ig = pageWithIG.instagram_business_account;
+  return {
+    platformId: ig.id,
+    name: ig.name ?? ig.username ?? 'Instagram Account',
+    avatarUrl: ig.profile_picture_url,
+  };
+};
+
 // ─── Threads ──────────────────────────────────────────────────────────────────
 
 const TH_AUTH_BASE = 'https://threads.net/oauth/authorize';
@@ -182,6 +248,10 @@ export const handleCallback = async (
     const tokens = await exchangeThreadsCode(code);
     const profile = await getThreadsProfile(tokens.accessToken);
     await upsertAccount(userId, 'threads', profile, tokens);
+  } else if (platform === 'instagram') {
+    const tokens = await exchangeInstagramCode(code);
+    const profile = await getInstagramProfile(tokens.accessToken);
+    await upsertAccount(userId, 'instagram', profile, tokens);
   } else {
     throw new Error(`Platform không được hỗ trợ: ${platform}`);
   }

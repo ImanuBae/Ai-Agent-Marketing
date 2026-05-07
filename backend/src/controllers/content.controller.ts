@@ -10,7 +10,7 @@ import {
   generateContentStrategy,
 } from '../services/gemini.service';
 
-type Platform = 'facebook' | 'linkedin' | 'tiktok';
+type Platform = 'facebook' | 'linkedin' | 'tiktok' | 'instagram';
 
 // Returns 503 for quota exhaustion, 500 for all other AI errors
 const handleAiError = (res: Response, error: unknown, fallbackMsg: string): Response => {

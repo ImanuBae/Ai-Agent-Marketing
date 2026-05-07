@@ -1,4 +1,4 @@
-export type SocialPlatform = 'facebook' | 'threads';
+export type SocialPlatform = 'facebook' | 'threads' | 'instagram';
 
 export interface SocialProfile {
   platformId: string;

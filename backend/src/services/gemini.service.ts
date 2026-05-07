@@ -242,15 +242,16 @@ interface CaptionWithHashtags {
 
 export const generateCaptionWithHashtags = async (
   brief: string,
-  platform: 'facebook' | 'linkedin' | 'tiktok',
+  platform: 'facebook' | 'linkedin' | 'tiktok' | 'instagram',
   tone = 'professional',
 ): Promise<CaptionWithHashtags> => {
   const platformGuide = {
     facebook: 'thân thiện, gần gũi, có thể dùng emoji, độ dài 100-200 từ',
     linkedin: 'chuyên nghiệp, nghiêm túc, không dùng nhiều emoji, độ dài 150-300 từ',
     tiktok: 'ngắn gọn, trendy, bắt trend giới trẻ, dùng emoji nhiều, dưới 100 từ',
+    instagram: 'hình ảnh trực quan, cảm xúc, aesthetic, dùng emoji vừa phải, độ dài 80-150 từ',
   };
-  const hashtagCount = { facebook: '5-10', linkedin: '3-5', tiktok: '10-15' };
+  const hashtagCount = { facebook: '5-10', linkedin: '3-5', tiktok: '10-15', instagram: '10-20' };
 
   const prompt = `
 Bạn là chuyên gia marketing content người Việt Nam.
@@ -290,7 +291,7 @@ CHỈ trả JSON, không thêm bất cứ gì khác.
 
 export const generateCaption = async (
   brief: string,
-  platform: 'facebook' | 'linkedin' | 'tiktok',
+  platform: 'facebook' | 'linkedin' | 'tiktok' | 'instagram',
   tone = 'professional',
 ): Promise<string> => {
   const { caption } = await generateCaptionWithHashtags(brief, platform, tone);
@@ -299,7 +300,7 @@ export const generateCaption = async (
 
 export const generateHashtags = async (
   content: string,
-  platform: 'facebook' | 'linkedin' | 'tiktok',
+  platform: 'facebook' | 'linkedin' | 'tiktok' | 'instagram',
 ): Promise<string[]> => {
   const { hashtags } = await generateCaptionWithHashtags(content, platform, 'professional');
   return hashtags;

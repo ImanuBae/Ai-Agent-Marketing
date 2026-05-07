@@ -15,6 +15,8 @@ export const getAuthUrl = async (req: Request, res: Response) => {
       url = await socialService.getFacebookAuthUrl(req.user!.userId);
     } else if (platform === 'threads') {
       url = await socialService.getThreadsAuthUrl(req.user!.userId);
+    } else if (platform === 'instagram') {
+      url = await socialService.getInstagramAuthUrl(req.user!.userId);
     } else {
       return sendError(res, `Platform không được hỗ trợ: ${platform}`, 400);
     }
@@ -39,6 +41,15 @@ export const connectThreads = async (req: Request, res: Response) => {
     return res.redirect(url);
   } catch (error) {
     return sendError(res, 'Không thể tạo URL xác thực Threads', 500, error);
+  }
+};
+
+export const connectInstagram = async (req: Request, res: Response) => {
+  try {
+    const url = await socialService.getInstagramAuthUrl(req.user!.userId);
+    return res.redirect(url);
+  } catch (error) {
+    return sendError(res, 'Không thể tạo URL xác thực Instagram', 500, error);
   }
 };
 

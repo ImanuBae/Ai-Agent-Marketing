@@ -30,7 +30,7 @@ router.use(authenticate);
  *                 example: "Cửa hàng giày thể thao mới khai trương"
  *               platform:
  *                 type: string
- *                 enum: [facebook, linkedin, tiktok]
+ *                 enum: [facebook, linkedin, tiktok, instagram]
  *               tone:
  *                 type: string
  *                 example: "friendly"
@@ -61,7 +61,7 @@ router.post('/generate',
  *                 type: string
  *               platform:
  *                 type: string
- *                 enum: [facebook, linkedin, tiktok]
+ *                 enum: [facebook, linkedin, tiktok, instagram]
  *     responses:
  *       200:
  *         description: Danh sách hashtag gợi ý
@@ -119,7 +119,7 @@ router.post('/product-description',
  *                 example: "thời trang"
  *               platform:
  *                 type: string
- *                 enum: [facebook, linkedin, tiktok]
+ *                 enum: [facebook, linkedin, tiktok, instagram]
  *     responses:
  *       200:
  *         description: Chiến lược nội dung được đề xuất
@@ -140,7 +140,7 @@ router.post('/strategy',
  *         name: platform
  *         schema:
  *           type: string
- *           enum: [facebook, linkedin, tiktok]
+ *           enum: [facebook, linkedin, tiktok, instagram]
  *       - in: query
  *         name: status
  *         schema:
