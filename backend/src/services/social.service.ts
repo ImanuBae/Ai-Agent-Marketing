@@ -67,36 +67,45 @@ const getFacebookProfile = async (accessToken: string): Promise<SocialProfile> =
 
 // ─── Instagram ────────────────────────────────────────────────────────────────
 
+const IG_AUTH_BASE = 'https://api.instagram.com/oauth/authorize';
+const IG_TOKEN_URL = 'https://api.instagram.com/oauth/access_token';
+const IG_LONGTOKEN_URL = 'https://graph.instagram.com/access_token';
+const IG_GRAPH_ME = 'https://graph.instagram.com/me';
+
 export const getInstagramAuthUrl = async (userId: string): Promise<string> => {
   const state = await generateState(userId);
   const params = new URLSearchParams({
-    client_id: process.env.FACEBOOK_CLIENT_ID!,
+    client_id: process.env.INSTAGRAM_CLIENT_ID!,
     redirect_uri: getCallbackUrl('instagram'),
-    scope: 'instagram_basic,instagram_content_publish,pages_show_list,pages_read_engagement',
+    scope: 'instagram_business_basic,instagram_content_publish,instagram_manage_comments',
     state,
     response_type: 'code',
   });
-  return `${FB_AUTH_BASE}?${params}`;
+  return `${IG_AUTH_BASE}?${params}`;
 };
 
 const exchangeInstagramCode = async (code: string): Promise<OAuthTokens> => {
-  const { data: shortToken } = await axios.get<{ access_token: string }>(FB_TOKEN_URL, {
-    params: {
-      client_id: process.env.FACEBOOK_CLIENT_ID,
-      client_secret: process.env.FACEBOOK_CLIENT_SECRET,
-      redirect_uri: getCallbackUrl('instagram'),
-      code,
-    },
+  const body = new URLSearchParams({
+    client_id: process.env.INSTAGRAM_CLIENT_ID!,
+    client_secret: process.env.INSTAGRAM_CLIENT_SECRET!,
+    grant_type: 'authorization_code',
+    redirect_uri: getCallbackUrl('instagram'),
+    code,
   });
 
-  const { data: longToken } = await axios.get<{ access_token: string; expires_in?: number }>(
-    FB_TOKEN_URL,
+  const { data: shortToken } = await axios.post<{ access_token: string; user_id: number }>(
+    IG_TOKEN_URL,
+    body.toString(),
+    { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } },
+  );
+
+  const { data: longToken } = await axios.get<{ access_token: string; expires_in: number }>(
+    IG_LONGTOKEN_URL,
     {
       params: {
-        grant_type: 'fb_exchange_token',
-        client_id: process.env.FACEBOOK_CLIENT_ID,
-        client_secret: process.env.FACEBOOK_CLIENT_SECRET,
-        fb_exchange_token: shortToken.access_token,
+        grant_type: 'ig_exchange_token',
+        client_secret: process.env.INSTAGRAM_CLIENT_SECRET,
+        access_token: shortToken.access_token,
       },
     },
   );
@@ -106,28 +115,21 @@ const exchangeInstagramCode = async (code: string): Promise<OAuthTokens> => {
 
 const getInstagramProfile = async (accessToken: string): Promise<SocialProfile> => {
   const { data } = await axios.get<{
-    data?: Array<{
-      id: string;
-      name: string;
-      instagram_business_account?: { id: string; name?: string; username?: string; profile_picture_url?: string };
-    }>;
-  }>(`https://graph.facebook.com/${FB_VERSION}/me/accounts`, {
+    id: string;
+    name?: string;
+    username?: string;
+    profile_picture_url?: string;
+  }>(IG_GRAPH_ME, {
     params: {
-      fields: 'id,name,instagram_business_account{id,name,username,profile_picture_url}',
+      fields: 'id,name,username,profile_picture_url',
       access_token: accessToken,
     },
   });
 
-  const pageWithIG = data.data?.find((p) => p.instagram_business_account);
-  if (!pageWithIG?.instagram_business_account) {
-    throw new Error('Không tìm thấy tài khoản Instagram Business liên kết với Facebook Page');
-  }
-
-  const ig = pageWithIG.instagram_business_account;
   return {
-    platformId: ig.id,
-    name: ig.name ?? ig.username ?? 'Instagram Account',
-    avatarUrl: ig.profile_picture_url,
+    platformId: data.id,
+    name: data.name ?? data.username ?? 'Instagram Account',
+    avatarUrl: data.profile_picture_url,
   };
 };
 
