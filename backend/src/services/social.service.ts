@@ -15,7 +15,7 @@ export const getFacebookAuthUrl = async (userId: string): Promise<string> => {
   const params = new URLSearchParams({
     client_id: process.env.FACEBOOK_CLIENT_ID!,
     redirect_uri: getCallbackUrl('facebook'),
-    scope: 'public_profile,email',
+    scope: 'public_profile,email,pages_show_list,pages_read_engagement,pages_manage_posts,pages_manage_metadata',
     state,
     response_type: 'code',
   });
@@ -77,7 +77,7 @@ export const getInstagramAuthUrl = async (userId: string): Promise<string> => {
   const params = new URLSearchParams({
     client_id: process.env.INSTAGRAM_CLIENT_ID!,
     redirect_uri: getCallbackUrl('instagram'),
-    scope: 'instagram_business_basic,instagram_content_publish,instagram_manage_comments',
+    scope: 'instagram_business_basic,instagram_business_content_publish,instagram_business_manage_comments',
     state,
     response_type: 'code',
   });
