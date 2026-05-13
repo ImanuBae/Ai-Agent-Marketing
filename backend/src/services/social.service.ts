@@ -85,30 +85,49 @@ export const getInstagramAuthUrl = async (userId: string): Promise<string> => {
 };
 
 const exchangeInstagramCode = async (code: string): Promise<OAuthTokens> => {
+  const redirectUri = getCallbackUrl('instagram');
   const body = new URLSearchParams({
     client_id: process.env.INSTAGRAM_CLIENT_ID!,
     client_secret: process.env.INSTAGRAM_CLIENT_SECRET!,
     grant_type: 'authorization_code',
-    redirect_uri: getCallbackUrl('instagram'),
+    redirect_uri: redirectUri,
     code,
   });
 
-  const { data: shortToken } = await axios.post<{ access_token: string; user_id: number }>(
-    IG_TOKEN_URL,
-    body.toString(),
-    { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } },
-  );
+  console.log('[Instagram] Exchanging code, redirect_uri:', redirectUri);
 
-  const { data: longToken } = await axios.get<{ access_token: string; expires_in: number }>(
-    IG_LONGTOKEN_URL,
-    {
-      params: {
-        grant_type: 'ig_exchange_token',
-        client_secret: process.env.INSTAGRAM_CLIENT_SECRET,
-        access_token: shortToken.access_token,
+  let shortToken: { access_token: string; user_id: number };
+  try {
+    const res = await axios.post<{ access_token: string; user_id: number }>(
+      IG_TOKEN_URL,
+      body.toString(),
+      { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } },
+    );
+    shortToken = res.data;
+  } catch (err: any) {
+    const detail = err?.response?.data ?? err?.message;
+    console.error('[Instagram] Short-lived token exchange failed:', JSON.stringify(detail));
+    throw new Error(`Instagram token exchange failed: ${JSON.stringify(detail)}`);
+  }
+
+  let longToken: { access_token: string; expires_in: number };
+  try {
+    const res = await axios.get<{ access_token: string; expires_in: number }>(
+      IG_LONGTOKEN_URL,
+      {
+        params: {
+          grant_type: 'ig_exchange_token',
+          client_secret: process.env.INSTAGRAM_CLIENT_SECRET,
+          access_token: shortToken.access_token,
+        },
       },
-    },
-  );
+    );
+    longToken = res.data;
+  } catch (err: any) {
+    const detail = err?.response?.data ?? err?.message;
+    console.error('[Instagram] Long-lived token exchange failed:', JSON.stringify(detail));
+    throw new Error(`Instagram long-lived token failed: ${JSON.stringify(detail)}`);
+  }
 
   return { accessToken: longToken.access_token, expiresIn: longToken.expires_in };
 };
