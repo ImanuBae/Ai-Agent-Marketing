@@ -151,6 +151,6 @@ processDueSchedules().catch((err) => console.error('[Queue] Startup poll error:'
 console.log('✅  Schedule poller started (interval: 60s)');
 
 // Stub exports — schedule.service.ts vẫn gọi nhưng polling tự xử lý
-export async function addScheduleJob(): Promise<void> {}
-export async function removeScheduleJob(): Promise<void> {}
+export async function addScheduleJob(_scheduleId: string, _contentId: string, _scheduledAt: Date): Promise<void> {}
+export async function removeScheduleJob(_scheduleId: string): Promise<void> {}
 export const scheduleQueue = null;
