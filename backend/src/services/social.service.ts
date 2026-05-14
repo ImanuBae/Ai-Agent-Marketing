@@ -18,6 +18,7 @@ export const getFacebookAuthUrl = async (userId: string): Promise<string> => {
     scope: 'public_profile,email,pages_show_list,pages_manage_posts',
     state,
     response_type: 'code',
+    auth_type: 'rerequest',
   });
   return `${FB_AUTH_BASE}?${params}`;
 };
