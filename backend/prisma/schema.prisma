@@ -37,6 +37,7 @@ model Content {
   platform   String
   caption    String
   hashtags   String[]
+  imageUrl   String?
   status     String          @default("draft")
   createdAt  DateTime        @default(now())
   updatedAt  DateTime        @updatedAt

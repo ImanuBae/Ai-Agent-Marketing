@@ -1,103 +1,156 @@
-import { Queue, Worker, Job } from 'bullmq';
+import axios from 'axios';
 import prisma from '../utils/prisma';
+import { decrypt } from '../utils/oauth';
+import type { Schedule, Content } from '@prisma/client';
 
-const REDIS_URL = process.env.REDIS_URL ?? '';
-const isRedisConfigured =
-  REDIS_URL.startsWith('redis://') || REDIS_URL.startsWith('rediss://');
+const FB_VERSION = 'v19.0';
+const POLL_INTERVAL_MS = 60_000;
 
-let scheduleQueue: Queue | null = null;
+type ScheduleWithContent = Schedule & { content: Content };
 
-if (isRedisConfigured) {
-  const connection = {
-    url: REDIS_URL,
-    maxRetriesPerRequest: null,   // required by BullMQ
-    enableOfflineQueue: false,    // fail fast when Redis is down
-    connectTimeout: 5000,
-    lazyConnect: true,
-  };
+// ─── Facebook ─────────────────────────────────────────────────────────────────
 
-  scheduleQueue = new Queue('schedule-posts', { connection });
+async function publishToFacebook(schedule: ScheduleWithContent): Promise<void> {
+  const account = await prisma.socialAccount.findUnique({
+    where: { userId_platform: { userId: schedule.userId, platform: 'facebook' } },
+  });
+  if (!account) throw new Error('Facebook chưa kết nối');
 
-  new Worker(
-    'schedule-posts',
-    async (job: Job) => {
-      const { scheduleId, contentId } = job.data as {
-        scheduleId: string;
-        contentId: string;
-      };
+  const userToken = decrypt(account.accessToken);
 
-      // 1. Mark as published in DB
-      await prisma.$transaction([
-        prisma.schedule.update({
-          where: { id: scheduleId },
-          data: { status: 'published' },
-        }),
-        prisma.content.update({
-          where: { id: contentId },
-          data: { status: 'published' },
-        }),
-      ]);
+  const { data } = await axios.get(`https://graph.facebook.com/${FB_VERSION}/me/accounts`, {
+    params: { access_token: userToken },
+  });
 
-      // 2. TODO Part 9: call real social API here
-      console.log(`[Queue] Published content ${contentId} (schedule ${scheduleId})`);
-
-      // 3. Seed an empty EngagementData row so Part 9 can PATCH it with real metrics
-      const schedule = await prisma.schedule.findUnique({
-        where: { id: scheduleId },
-      });
-      if (schedule) {
-        await prisma.engagementData.upsert({
-          where: { contentId },
-          create: {
-            userId: schedule.userId,
-            contentId,
-            platform: schedule.platform,
-            dayOfWeek: schedule.scheduledAt.getUTCDay(),
-            hourOfDay: schedule.scheduledAt.getUTCHours(),
-          },
-          update: {},
-        });
-      }
-    },
-    {
-      connection,
-      // retry once on transient failure
-      settings: { backoffStrategy: () => 5_000 },
-    },
-  );
-
-  // Surface worker errors without crashing the process
-  console.log('✅  BullMQ schedule queue initialized');
-} else {
-  console.warn('⚠️   REDIS_URL not configured — schedule queue disabled (jobs will not auto-publish)');
-}
-
-export async function addScheduleJob(
-  scheduleId: string,
-  contentId: string,
-  scheduledAt: Date,
-): Promise<void> {
-  if (!scheduleQueue) {
-    console.warn('[Queue] Skipped: Redis not configured');
-    return;
+  const pages: Array<{ id: string; access_token: string; name: string }> = data.data ?? [];
+  if (pages.length === 0) {
+    throw new Error('Không tìm thấy Facebook Page. Vui lòng kết nối lại với tài khoản có Page.');
   }
-  const delay = Math.max(0, scheduledAt.getTime() - Date.now());
-  await scheduleQueue.add(
-    'publish-content',
-    { scheduleId, contentId },
+
+  const message = [schedule.content.caption, schedule.content.hashtags.join(' ')]
+    .filter(Boolean)
+    .join('\n\n');
+
+  await axios.post(`https://graph.facebook.com/${FB_VERSION}/${pages[0].id}/feed`, null, {
+    params: { message, access_token: pages[0].access_token },
+  });
+}
+
+// ─── Instagram ────────────────────────────────────────────────────────────────
+
+async function publishToInstagram(schedule: ScheduleWithContent): Promise<void> {
+  const account = await prisma.socialAccount.findUnique({
+    where: { userId_platform: { userId: schedule.userId, platform: 'instagram' } },
+  });
+  if (!account) throw new Error('Instagram chưa kết nối');
+
+  if (!schedule.content.imageUrl) {
+    throw new Error('Instagram cần image URL. Hãy thêm ảnh vào bài đăng trước khi lên lịch.');
+  }
+
+  const accessToken = decrypt(account.accessToken);
+  const igUserId = account.accountId;
+
+  const caption = [schedule.content.caption, schedule.content.hashtags.join(' ')]
+    .filter(Boolean)
+    .join('\n\n');
+
+  // Step 1: tạo media container
+  const { data: container } = await axios.post(
+    `https://graph.instagram.com/${igUserId}/media`,
+    null,
     {
-      delay,
-      jobId: scheduleId,       // idempotent re-adds
-      removeOnComplete: 100,
-      removeOnFail: 50,
+      params: {
+        image_url: schedule.content.imageUrl,
+        caption,
+        access_token: accessToken,
+      },
     },
   );
+
+  // Step 2: publish
+  await axios.post(`https://graph.instagram.com/${igUserId}/media_publish`, null, {
+    params: {
+      creation_id: container.id,
+      access_token: accessToken,
+    },
+  });
 }
 
-export async function removeScheduleJob(scheduleId: string): Promise<void> {
-  if (!scheduleQueue) return;
-  const job = await scheduleQueue.getJob(scheduleId);
-  if (job) await job.remove();
+// ─── Core publish + DB update ─────────────────────────────────────────────────
+
+async function publishSchedule(schedule: ScheduleWithContent): Promise<void> {
+  if (schedule.platform === 'facebook') {
+    await publishToFacebook(schedule);
+  } else if (schedule.platform === 'instagram') {
+    await publishToInstagram(schedule);
+  } else {
+    throw new Error(`Platform chưa hỗ trợ đăng tự động: ${schedule.platform}`);
+  }
+
+  await prisma.$transaction([
+    prisma.schedule.update({
+      where: { id: schedule.id },
+      data: { status: 'published' },
+    }),
+    prisma.content.update({
+      where: { id: schedule.contentId },
+      data: { status: 'published' },
+    }),
+  ]);
+
+  await prisma.engagementData.upsert({
+    where: { contentId: schedule.contentId },
+    create: {
+      userId: schedule.userId,
+      contentId: schedule.contentId,
+      platform: schedule.platform,
+      dayOfWeek: schedule.scheduledAt.getUTCDay(),
+      hourOfDay: schedule.scheduledAt.getUTCHours(),
+    },
+    update: {},
+  });
 }
 
-export { scheduleQueue };
+// ─── Polling loop ─────────────────────────────────────────────────────────────
+
+async function processDueSchedules(): Promise<void> {
+  const due = await prisma.schedule.findMany({
+    where: { status: 'pending', scheduledAt: { lte: new Date() } },
+    include: { content: true },
+  });
+
+  for (const schedule of due) {
+    try {
+      await publishSchedule(schedule);
+      console.log(`[Queue] Published ${schedule.platform} post (schedule ${schedule.id})`);
+    } catch (err: any) {
+      const errorMsg = err?.response?.data
+        ? JSON.stringify(err.response.data)
+        : (err?.message ?? 'Unknown error');
+      console.error(`[Queue] Failed schedule ${schedule.id}:`, errorMsg);
+      await prisma.schedule.update({
+        where: { id: schedule.id },
+        data: { status: 'failed', errorMsg },
+      });
+      await prisma.content.update({
+        where: { id: schedule.contentId },
+        data: { status: 'draft' },
+      });
+    }
+  }
+}
+
+// Poll mỗi 60s; chạy ngay khi khởi động để bắt các schedule bị bỏ lỡ
+setInterval(() => {
+  processDueSchedules().catch((err) => console.error('[Queue] Poll error:', err));
+}, POLL_INTERVAL_MS);
+
+processDueSchedules().catch((err) => console.error('[Queue] Startup poll error:', err));
+
+console.log('✅  Schedule poller started (interval: 60s)');
+
+// Stub exports — schedule.service.ts vẫn gọi nhưng polling tự xử lý
+export async function addScheduleJob(): Promise<void> {}
+export async function removeScheduleJob(): Promise<void> {}
+export const scheduleQueue = null;

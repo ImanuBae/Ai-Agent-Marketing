@@ -24,7 +24,7 @@ const handleAiError = (res: Response, error: unknown, fallbackMsg: string): Resp
 
 export const createCaption = async (req: Request, res: Response) => {
   try {
-    const { brief, platform, tone } = req.body;
+    const { brief, platform, tone, imageUrl } = req.body;
     const userId = req.user!.userId;
 
     const { caption, hashtags } = await generateCaptionWithHashtags(
@@ -34,7 +34,7 @@ export const createCaption = async (req: Request, res: Response) => {
     );
 
     const content = await prisma.content.create({
-      data: { userId, platform, caption, hashtags, status: 'draft' },
+      data: { userId, platform, caption, hashtags, imageUrl: imageUrl ?? null, status: 'draft' },
     });
 
     return sendSuccess(res, 'Tạo caption thành công', { content, hashtags });
@@ -109,7 +109,7 @@ export const getContentHistory = async (req: Request, res: Response) => {
 export const updateContent = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
-    const { caption, hashtags } = req.body;
+    const { caption, hashtags, imageUrl } = req.body;
     const userId = req.user!.userId;
 
     const content = await prisma.content.findFirst({ where: { id, userId } });
@@ -121,8 +121,9 @@ export const updateContent = async (req: Request, res: Response) => {
     const updated = await prisma.content.update({
       where: { id },
       data: {
-        ...(caption  && { caption }),
-        ...(hashtags && { hashtags }),
+        ...(caption            && { caption }),
+        ...(hashtags           && { hashtags }),
+        ...(imageUrl !== undefined && { imageUrl: imageUrl ?? null }),
       },
     });
 
