@@ -75,7 +75,6 @@ const IG_GRAPH_ME = 'https://graph.instagram.com/me';
 export const getInstagramAuthUrl = async (userId: string): Promise<string> => {
   const state = await generateState(userId);
   const redirectUri = getCallbackUrl('instagram');
-  // Use force_reauth=true to match the Business Login flow where redirect_uri is registered
   const params = new URLSearchParams({
     force_reauth: 'true',
     client_id: process.env.INSTAGRAM_CLIENT_ID!,
@@ -84,7 +83,7 @@ export const getInstagramAuthUrl = async (userId: string): Promise<string> => {
     state,
     response_type: 'code',
   });
-  console.log('[Instagram] Auth URL redirect_uri:', redirectUri);
+  console.log('[Instagram] Auth URL:', `${IG_AUTH_BASE}?${params}`);
   return `${IG_AUTH_BASE}?${params}`;
 };
 
