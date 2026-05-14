@@ -77,10 +77,9 @@ export const getInstagramAuthUrl = async (userId: string): Promise<string> => {
   const state = await generateState(userId);
   const redirectUri = getCallbackUrl('instagram');
   const params = new URLSearchParams({
-    force_reauth: 'true',
     client_id: process.env.INSTAGRAM_CLIENT_ID!,
     redirect_uri: redirectUri,
-    scope: 'instagram_business_basic,instagram_content_publish',
+    scope: 'instagram_business_basic,instagram_business_content_publish',
     state,
     response_type: 'code',
   });
