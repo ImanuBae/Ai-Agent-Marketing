@@ -16,14 +16,44 @@ async function publishToFacebook(schedule: ScheduleWithContent): Promise<void> {
   });
   if (!account) throw new Error('Facebook chưa kết nối');
 
+  if (account.expiresAt && account.expiresAt < new Date()) {
+    throw new Error('Token Facebook đã hết hạn (>60 ngày). Vui lòng ngắt kết nối và kết nối lại.');
+  }
+
   const userToken = decrypt(account.accessToken);
 
-  const { data } = await axios.get(`https://graph.facebook.com/${FB_VERSION}/me/accounts`, {
-    params: { access_token: userToken },
-  });
+  let pages: Array<{ id: string; access_token: string; name: string }>;
+  try {
+    const { data } = await axios.get(`https://graph.facebook.com/${FB_VERSION}/me/accounts`, {
+      params: { access_token: userToken },
+    });
+    pages = data.data ?? [];
+  } catch (err: any) {
+    const fbCode = err?.response?.data?.error?.code;
+    if (fbCode === 190) {
+      throw new Error('Token Facebook đã hết hạn hoặc bị thu hồi. Vui lòng kết nối lại.');
+    }
+    throw err;
+  }
 
-  const pages: Array<{ id: string; access_token: string; name: string }> = data.data ?? [];
   if (pages.length === 0) {
+    // Distinguish missing permission from truly no pages
+    try {
+      const { data: permData } = await axios.get(
+        `https://graph.facebook.com/${FB_VERSION}/me/permissions`,
+        { params: { access_token: userToken } },
+      );
+      const granted: string[] = (permData.data ?? [])
+        .filter((p: any) => p.status === 'granted')
+        .map((p: any) => p.permission);
+      if (!granted.includes('pages_show_list')) {
+        throw new Error(
+          'Thiếu quyền pages_show_list. Vui lòng ngắt kết nối Facebook và kết nối lại, đảm bảo cấp quyền Quản lý Pages.',
+        );
+      }
+    } catch (permErr: any) {
+      if (permErr.message.includes('pages_show_list')) throw permErr;
+    }
     throw new Error('Không tìm thấy Facebook Page. Vui lòng kết nối lại với tài khoản có Page.');
   }
 
