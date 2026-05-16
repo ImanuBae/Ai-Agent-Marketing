@@ -3,7 +3,7 @@ import prisma from '../utils/prisma';
 import { decrypt } from '../utils/oauth';
 import type { Schedule, Content } from '@prisma/client';
 
-const FB_VERSION = 'v19.0';
+const FB_VERSION = 'v21.0';
 const POLL_INTERVAL_MS = 60_000;
 
 type ScheduleWithContent = Schedule & { content: Content };
@@ -27,6 +27,7 @@ async function publishToFacebook(schedule: ScheduleWithContent): Promise<void> {
     const { data } = await axios.get(`https://graph.facebook.com/${FB_VERSION}/me/accounts`, {
       params: { access_token: userToken },
     });
+    console.log(`[FB Debug] userId=${schedule.userId} accountId=${account.accountId} /me/accounts raw:`, JSON.stringify(data));
     pages = data.data ?? [];
   } catch (err: any) {
     const fbCode = err?.response?.data?.error?.code;

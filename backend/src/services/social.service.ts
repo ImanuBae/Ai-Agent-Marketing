@@ -5,7 +5,7 @@ import type { SocialPlatform, SocialProfile, OAuthTokens } from '../types/social
 
 // ─── Facebook ─────────────────────────────────────────────────────────────────
 
-const FB_VERSION = 'v19.0';
+const FB_VERSION = 'v21.0';
 const FB_AUTH_BASE = `https://www.facebook.com/${FB_VERSION}/dialog/oauth`;
 const FB_TOKEN_URL = `https://graph.facebook.com/${FB_VERSION}/oauth/access_token`;
 const FB_GRAPH_ME = `https://graph.facebook.com/${FB_VERSION}/me`;
