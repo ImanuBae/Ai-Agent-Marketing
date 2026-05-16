@@ -38,12 +38,12 @@ async function publishToFacebook(schedule: ScheduleWithContent): Promise<void> {
   }
 
   if (pages.length === 0) {
-    // Distinguish missing permission from truly no pages
     try {
       const { data: permData } = await axios.get(
         `https://graph.facebook.com/${FB_VERSION}/me/permissions`,
         { params: { access_token: userToken } },
       );
+      console.log(`[FB Debug] /me/permissions:`, JSON.stringify(permData));
       const granted: string[] = (permData.data ?? [])
         .filter((p: any) => p.status === 'granted')
         .map((p: any) => p.permission);
@@ -52,8 +52,12 @@ async function publishToFacebook(schedule: ScheduleWithContent): Promise<void> {
           'Thiếu quyền pages_show_list. Vui lòng ngắt kết nối Facebook và kết nối lại, đảm bảo cấp quyền Quản lý Pages.',
         );
       }
+      // pages_show_list IS granted but /me/accounts still empty → Business Manager or no direct Page role
+      throw new Error(
+        `pages_show_list đã được cấp nhưng /me/accounts rỗng. Kiểm tra: tài khoản ${account.accountId} có vai trò Admin/Editor trực tiếp trên Page không (không phải qua Business Manager).`,
+      );
     } catch (permErr: any) {
-      if (permErr.message.includes('pages_show_list')) throw permErr;
+      if (permErr.message.includes('pages_show_list') || permErr.message.includes('/me/accounts rỗng')) throw permErr;
     }
     throw new Error('Không tìm thấy Facebook Page. Vui lòng kết nối lại với tài khoản có Page.');
   }
