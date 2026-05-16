@@ -27,7 +27,6 @@ async function publishToFacebook(schedule: ScheduleWithContent): Promise<void> {
     const { data } = await axios.get(`https://graph.facebook.com/${FB_VERSION}/me/accounts`, {
       params: { access_token: userToken },
     });
-    console.log(`[FB Debug] userId=${schedule.userId} accountId=${account.accountId} /me/accounts raw:`, JSON.stringify(data));
     pages = data.data ?? [];
   } catch (err: any) {
     const fbCode = err?.response?.data?.error?.code;
@@ -37,29 +36,23 @@ async function publishToFacebook(schedule: ScheduleWithContent): Promise<void> {
     throw err;
   }
 
+  // Fallback: pages managed via Meta Business Portfolio won't appear in /me/accounts
   if (pages.length === 0) {
     try {
-      const { data: permData } = await axios.get(
-        `https://graph.facebook.com/${FB_VERSION}/me/permissions`,
-        { params: { access_token: userToken } },
+      const { data: bizData } = await axios.get(
+        `https://graph.facebook.com/${FB_VERSION}/me/businesses`,
+        { params: { access_token: userToken, fields: 'owned_pages.fields(id,access_token,name)' } },
       );
-      console.log(`[FB Debug] /me/permissions:`, JSON.stringify(permData));
-      const granted: string[] = (permData.data ?? [])
-        .filter((p: any) => p.status === 'granted')
-        .map((p: any) => p.permission);
-      if (!granted.includes('pages_show_list')) {
-        throw new Error(
-          'Thiếu quyền pages_show_list. Vui lòng ngắt kết nối Facebook và kết nối lại, đảm bảo cấp quyền Quản lý Pages.',
-        );
-      }
-      // pages_show_list IS granted but /me/accounts still empty → Business Manager or no direct Page role
-      throw new Error(
-        `pages_show_list đã được cấp nhưng /me/accounts rỗng. Kiểm tra: tài khoản ${account.accountId} có vai trò Admin/Editor trực tiếp trên Page không (không phải qua Business Manager).`,
-      );
-    } catch (permErr: any) {
-      if (permErr.message.includes('pages_show_list') || permErr.message.includes('/me/accounts rỗng')) throw permErr;
+      pages = (bizData.data ?? []).flatMap((biz: any) => biz.owned_pages?.data ?? []);
+    } catch {
+      // business_management not in token scope yet → user needs to reconnect
     }
-    throw new Error('Không tìm thấy Facebook Page. Vui lòng kết nối lại với tài khoản có Page.');
+  }
+
+  if (pages.length === 0) {
+    throw new Error(
+      'Không tìm thấy Facebook Page. Token thiếu quyền business_management — vui lòng ngắt kết nối Facebook và kết nối lại.',
+    );
   }
 
   const message = [schedule.content.caption, schedule.content.hashtags.join(' ')]

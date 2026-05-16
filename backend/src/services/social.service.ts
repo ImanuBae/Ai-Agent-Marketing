@@ -15,7 +15,7 @@ export const getFacebookAuthUrl = async (userId: string): Promise<string> => {
   const params = new URLSearchParams({
     client_id: process.env.FACEBOOK_CLIENT_ID!,
     redirect_uri: getCallbackUrl('facebook'),
-    scope: 'pages_show_list,pages_manage_posts',
+    scope: 'pages_show_list,pages_manage_posts,business_management',
     state,
     response_type: 'code',
     auth_type: 'rerequest',
