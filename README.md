@@ -195,11 +195,4 @@ Bạn có thể kiểm tra xem lỗi là do code của mình hay do hệ thống
 1.  **Google AI Studio Dashboard:** [aistudio.google.com](https://aistudio.google.com/) (Kiểm tra Error Rate của API Key).
 2.  **Google Cloud Console:** [console.cloud.google.com](https://console.cloud.google.com/) (Kiểm tra lỗi 5xx trong Generative Language API).
 3.  **Google Cloud Status Dashboard:** [status.cloud.google.com](https://status.cloud.google.com/)
-
-### 5.3. Giải thích các thuật ngữ trên Trang Trạng Thái
-- **Multi-regions (Đa khu vực):** Các dịch vụ có tính dự phòng cao, phân bổ trên nhiều khu vực địa lý lớn.
-- **Non-regional (Không theo khu vực):** Trạng thái của các dịch vụ triển khai toàn cầu (như Gemini). Nếu phần này báo lỗi, nghĩa là dịch vụ đó đang gặp sự cố trên toàn hệ thống.
-
----
-
-*Last updated: April 23, 2026 by Antigravity AI Assistant.*
+ 
