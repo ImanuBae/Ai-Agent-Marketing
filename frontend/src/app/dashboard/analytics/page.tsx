@@ -47,13 +47,9 @@ interface CampaignAnalysis {
   effectivenessScore: number;
   rowsAnalyzed: number;
   createdAt: string;
-  chartData: {
-    date: string;
-    revenue: number;
-    posts: number;
-    reach: number;
-    engagementRate: number;
-  }[];
+  revenueLabel: string;
+  activityLabel: string;
+  chartData: { date: string; revenue: number; activity: number }[];
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -349,16 +345,17 @@ function CampaignTab() {
 
   // Aggregate chart data weekly for readability
   const weeklyChart = (() => {
-    if (!analysis?.chartData) return [];
-    const weeks: Record<string, { revenue: number; posts: number; week: string }> = {};
-    analysis.chartData.forEach(row => {
+    if (!analysis?.chartData?.length) return [];
+    const weeks: Record<string, { revenue: number; activity: number; week: string }> = {};
+    analysis.chartData.forEach((row, i) => {
       const d = new Date(row.date);
-      const weekStart = new Date(d);
-      weekStart.setDate(d.getDate() - d.getDay());
+      const valid = !isNaN(d.getTime());
+      const weekStart = valid ? new Date(d) : new Date(2026, 1, 1 + Math.floor(i / 7) * 7);
+      if (valid) weekStart.setDate(d.getDate() - d.getDay());
       const key = weekStart.toISOString().split("T")[0];
-      if (!weeks[key]) weeks[key] = { revenue: 0, posts: 0, week: `${weekStart.getDate()}/${weekStart.getMonth() + 1}` };
-      weeks[key].revenue += row.revenue;
-      weeks[key].posts += row.posts;
+      if (!weeks[key]) weeks[key] = { revenue: 0, activity: 0, week: `${weekStart.getDate()}/${weekStart.getMonth() + 1}` };
+      weeks[key].revenue  += row.revenue;
+      weeks[key].activity += row.activity;
     });
     return Object.values(weeks);
   })();
@@ -503,8 +500,8 @@ function CampaignTab() {
                     }
                   />
                   <Legend />
-                  <Bar yAxisId="rev" dataKey="revenue" name="Doanh thu" fill="#E8734A" radius={[4, 4, 0, 0]} />
-                  <Bar yAxisId="posts" dataKey="posts" name="Bài đăng" fill="#1877F2" radius={[4, 4, 0, 0]} barSize={12} />
+                  <Bar yAxisId="rev" dataKey="revenue" name={analysis.revenueLabel} fill="#E8734A" radius={[4, 4, 0, 0]} />
+                  <Bar yAxisId="posts" dataKey="activity" name={analysis.activityLabel} fill="#1877F2" radius={[4, 4, 0, 0]} barSize={12} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

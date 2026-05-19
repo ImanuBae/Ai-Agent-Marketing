@@ -115,12 +115,14 @@ export const uploadSalesReport = async (req: Request, res: Response) => {
 
     if (rows.length === 0) return sendError(res, 'File không có dữ liệu', 400);
 
-    // Validate required columns
-    const required = ['Date', 'Revenue', 'UnitsSold'];
+    // Only require at least 2 columns and at least 1 numeric column — AI handles the rest
     const headers = Object.keys(rows[0]);
-    const missing = required.filter(c => !headers.includes(c));
-    if (missing.length > 0) {
-      return sendError(res, `File thiếu cột bắt buộc: ${missing.join(', ')}`, 400);
+    if (headers.length < 2) {
+      return sendError(res, 'File cần có ít nhất 2 cột dữ liệu', 400);
+    }
+    const hasNumeric = headers.some(h => typeof rows[0][h] === 'number');
+    if (!hasNumeric) {
+      return sendError(res, 'File cần có ít nhất 1 cột số (doanh thu, chi phí, v.v.)', 400);
     }
 
     const report = await prisma.salesReport.create({
@@ -203,10 +205,16 @@ export const analyzeCampaignHandler = async (req: Request, res: Response) => {
 
     let rows = (report.data as Record<string, unknown>[]);
 
+    // Auto-detect date column (handles any language)
+    const allHeaders = rows.length > 0 ? Object.keys(rows[0]) : [];
+    const dateCol = allHeaders.find(h =>
+      /date|ngày|ngay|thời gian|time|week|month|tháng/i.test(h)
+    ) ?? allHeaders[0]; // fallback to first column
+
     // Filter by date range if provided
-    if (startDate || endDate) {
+    if ((startDate || endDate) && dateCol) {
       rows = rows.filter(r => {
-        const d = String(r['Date'] ?? '');
+        const d = String(r[dateCol] ?? '');
         if (startDate && d < startDate) return false;
         if (endDate && d > endDate) return false;
         return true;
@@ -229,6 +237,14 @@ export const analyzeCampaignHandler = async (req: Request, res: Response) => {
       },
     });
 
+    // Build chart data using AI-identified columns
+    const { dateColumn, revenueColumn, activityColumn } = aiResult;
+    const chartData = rows.map(r => ({
+      date:     String(r[dateColumn ?? dateCol] ?? ''),
+      revenue:  Number(r[revenueColumn ?? ''] ?? 0),
+      activity: Number(r[activityColumn ?? ''] ?? 0),
+    }));
+
     return sendSuccess(res, 'Phân tích hoàn tất', {
       id: analysis.id,
       salesReportId,
@@ -237,13 +253,9 @@ export const analyzeCampaignHandler = async (req: Request, res: Response) => {
       effectivenessScore: analysis.effectivenessScore,
       rowsAnalyzed: rows.length,
       createdAt: analysis.createdAt,
-      chartData: rows.map(r => ({
-        date: r['Date'],
-        revenue: Number(r['Revenue'] ?? 0),
-        posts: Number(r['PostsPublished'] ?? 0),
-        reach: Number(r['Reach'] ?? 0),
-        engagementRate: Number(r['EngagementRate'] ?? 0),
-      })),
+      revenueLabel: revenueColumn ?? 'Doanh thu',
+      activityLabel: activityColumn ?? 'Hoạt động',
+      chartData,
     });
   } catch (error: any) {
     if (error?.status === 503 || error?.name === 'QuotaExhaustedError') {
