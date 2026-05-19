@@ -26,3 +26,34 @@ export const avatarUpload = multer({
   fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
 });
+
+// ── EXCEL / CSV UPLOAD ────────────────────────────────────────────────────────
+
+const excelStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    cb(null, path.join(__dirname, '../../uploads/sales'));
+  },
+  filename: (_req, file, cb) => {
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    cb(null, `${uniqueSuffix}${path.extname(file.originalname)}`);
+  },
+});
+
+const excelFileFilter = (_req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
+  const allowed = [
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-excel',
+    'text/csv',
+  ];
+  if (allowed.includes(file.mimetype) || file.originalname.match(/\.(xlsx|xls|csv)$/i)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Chỉ chấp nhận file Excel (.xlsx, .xls) hoặc CSV (.csv)'));
+  }
+};
+
+export const excelUpload = multer({
+  storage: excelStorage,
+  fileFilter: excelFileFilter,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+});

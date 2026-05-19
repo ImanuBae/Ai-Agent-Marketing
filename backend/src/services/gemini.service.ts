@@ -397,6 +397,81 @@ Hãy trả lời một cách chuyên nghiệp, sáng tạo và hữu ích.
   });
 };
 
+// ── PHÂN TÍCH CHIẾN DỊCH MARKETING ───────────────────────────────────────────
+
+export interface CampaignAnalysisResult {
+  analysisText: string;
+  recommendation: 'continue' | 'pivot' | 'stop';
+  effectivenessScore: number;
+}
+
+export const analyzeCampaign = async (
+  salesData: Record<string, unknown>[],
+): Promise<CampaignAnalysisResult> => {
+  // Summarise data to keep prompt size manageable (max 90 rows)
+  const rows = salesData.slice(0, 90);
+  const totalRevenue = rows.reduce((s, r) => s + Number(r['Revenue'] ?? 0), 0);
+  const totalUnits = rows.reduce((s, r) => s + Number(r['UnitsSold'] ?? 0), 0);
+  const postDays = rows.filter(r => Number(r['PostsPublished'] ?? 0) > 0).length;
+  const avgEngagement = rows.reduce((s, r) => s + Number(r['EngagementRate'] ?? 0), 0) / rows.length;
+  const avgAiPct = rows.filter(r => Number(r['AIContentPct'] ?? 0) > 0)
+    .reduce((s, r) => s + Number(r['AIContentPct'] ?? 0), 0) / (postDays || 1);
+
+  const tablePreview = rows
+    .slice(0, 30) // First 30 rows in detail
+    .map(r => `${r['Date']}|${Number(r['Revenue']).toLocaleString('vi-VN')}|${r['UnitsSold']}|${r['PostsPublished']}|${r['AIContentPct']}%|${r['Reach']}|${r['EngagementRate']}%|${r['Clicks']}|${r['Platform']}`)
+    .join('\n');
+
+  const prompt = `
+Bạn là chuyên gia phân tích marketing và doanh thu hàng đầu Việt Nam.
+Hãy phân tích hiệu quả chiến dịch marketing dựa trên dữ liệu thực tế sau.
+
+=== TÓM TẮT CHIẾN DỊCH ===
+Số ngày: ${rows.length} ngày
+Tổng doanh thu: ${totalRevenue.toLocaleString('vi-VN')} VND
+Tổng đơn vị bán: ${totalUnits.toLocaleString('vi-VN')}
+Số ngày đăng bài: ${postDays} ngày
+Tỷ lệ tương tác trung bình: ${avgEngagement.toFixed(2)}%
+Tỷ lệ nội dung AI trung bình: ${avgAiPct.toFixed(0)}%
+
+=== DỮ LIỆU CHI TIẾT (30 ngày đầu) ===
+Date|Revenue(VND)|UnitsSold|PostsPublished|AIContentPct|Reach|EngagementRate|Clicks|Platform
+${tablePreview}
+${rows.length > 30 ? `... và ${rows.length - 30} ngày tiếp theo` : ''}
+
+=== YÊU CẦU PHÂN TÍCH ===
+1. Xu hướng doanh thu: có tăng trưởng không? tốc độ ra sao?
+2. Tương quan: ngày đăng bài có tác động đến doanh thu không?
+3. Hiệu quả AI content: nội dung AI có hiệu quả hơn không?
+4. Điểm mạnh và điểm cần cải thiện của chiến dịch
+5. Khuyến nghị: có nên TIẾP TỤC, ĐIỀU CHỈNH hay DỪNG chiến lược này?
+
+Trả về JSON hợp lệ với cấu trúc SAU (không kèm markdown code block):
+{
+  "analysisText": "Báo cáo phân tích chi tiết bằng tiếng Việt, khoảng 400-600 từ, trình bày rõ ràng từng mục",
+  "recommendation": "continue" | "pivot" | "stop",
+  "effectivenessScore": <số nguyên 0-100>
+}
+
+Trong đó effectivenessScore:
+- 0-40: Kém hiệu quả (nên dừng)
+- 41-65: Trung bình (cần điều chỉnh)
+- 66-100: Tốt (nên tiếp tục)
+  `.trim();
+
+  return callWithRetry(async () => {
+    const result = await model.generateContent(prompt);
+    const text = result.response.text().trim();
+    const parsed = parseJsonFromAiText(text);
+    const rec = parsed.recommendation;
+    return {
+      analysisText: String(parsed.analysisText ?? ''),
+      recommendation: (['continue', 'pivot', 'stop'].includes(rec) ? rec : 'pivot') as 'continue' | 'pivot' | 'stop',
+      effectivenessScore: Math.max(0, Math.min(100, Number(parsed.effectivenessScore ?? 50))),
+    };
+  });
+};
+
 // ── QUOTA STATUS ──────────────────────────────────────────────────────────────
 
 export const getQuotaStatus = async () => {

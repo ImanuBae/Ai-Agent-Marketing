@@ -27,6 +27,8 @@ model User {
   socials          SocialAccount[]
   engagements      EngagementData[]
   timeSlots        TimeSlotStats[]
+  salesReports     SalesReport[]
+  campaignAnalyses CampaignAnalysis[]
 
   @@map("users")
 }
@@ -148,6 +150,34 @@ model DailyApiQuota {
 
   @@unique([dateKey, model])
   @@map("daily_api_quotas")
+}
+
+model SalesReport {
+  id          String             @id @default(cuid())
+  userId      String
+  fileName    String
+  periodStart DateTime?
+  periodEnd   DateTime?
+  data        Json               // Parsed rows from Excel
+  createdAt   DateTime           @default(now())
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  analyses    CampaignAnalysis[]
+
+  @@map("sales_reports")
+}
+
+model CampaignAnalysis {
+  id                 String      @id @default(cuid())
+  userId             String
+  salesReportId      String
+  analysisText       String      @db.Text
+  recommendation     String      // "continue" | "pivot" | "stop"
+  effectivenessScore Float
+  createdAt          DateTime    @default(now())
+  user               User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  salesReport        SalesReport @relation(fields: [salesReportId], references: [id], onDelete: Cascade)
+
+  @@map("campaign_analyses")
 }
 
 enum Role {
