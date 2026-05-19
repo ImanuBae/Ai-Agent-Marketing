@@ -3,6 +3,7 @@ import * as XLSX from 'xlsx';
 import path from 'path';
 import fs from 'fs';
 import prisma from '../utils/prisma';
+
 import { sendSuccess, sendError } from '../utils/response';
 import { analyzeCampaign as geminiAnalyzeCampaign } from '../services/gemini.service';
 
@@ -107,22 +108,18 @@ export const uploadSalesReport = async (req: Request, res: Response) => {
 
     if (!file) return sendError(res, 'Vui lòng chọn file Excel hoặc CSV', 400);
 
-    // Parse file
-    const workbook = XLSX.readFile(file.path);
+    // Parse from memory buffer (no disk write needed)
+    const workbook = XLSX.read(file.buffer, { type: 'buffer' });
     const sheetName = workbook.SheetNames[0];
     const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(workbook.Sheets[sheetName]);
 
-    if (rows.length === 0) {
-      fs.unlinkSync(file.path);
-      return sendError(res, 'File không có dữ liệu', 400);
-    }
+    if (rows.length === 0) return sendError(res, 'File không có dữ liệu', 400);
 
     // Validate required columns
     const required = ['Date', 'Revenue', 'UnitsSold'];
     const headers = Object.keys(rows[0]);
     const missing = required.filter(c => !headers.includes(c));
     if (missing.length > 0) {
-      fs.unlinkSync(file.path);
       return sendError(res, `File thiếu cột bắt buộc: ${missing.join(', ')}`, 400);
     }
 

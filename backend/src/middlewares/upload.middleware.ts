@@ -27,17 +27,7 @@ export const avatarUpload = multer({
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
 });
 
-// ── EXCEL / CSV UPLOAD ────────────────────────────────────────────────────────
-
-const excelStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    cb(null, path.join(__dirname, '../../uploads/sales'));
-  },
-  filename: (_req, file, cb) => {
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    cb(null, `${uniqueSuffix}${path.extname(file.originalname)}`);
-  },
-});
+// ── EXCEL / CSV UPLOAD (memory storage — no disk dependency) ──────────────────
 
 const excelFileFilter = (_req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
   const allowed = [
@@ -53,7 +43,7 @@ const excelFileFilter = (_req: Request, file: Express.Multer.File, cb: FileFilte
 };
 
 export const excelUpload = multer({
-  storage: excelStorage,
+  storage: multer.memoryStorage(),
   fileFilter: excelFileFilter,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
 });
