@@ -402,7 +402,7 @@ function CampaignTab() {
 
         <div className="flex items-center justify-between mt-3">
           <a
-            href={`${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000"}/api/analytics/sample-file`}
+            href={`${api.defaults.baseURL}analytics/sample-file`}
             target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-1.5 text-xs font-semibold text-[#E8734A] hover:underline"
           >
