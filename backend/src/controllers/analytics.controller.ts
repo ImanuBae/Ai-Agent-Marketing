@@ -100,6 +100,48 @@ export const getOverview = async (req: Request, res: Response) => {
   }
 };
 
+// Parses any Excel — handles complex layouts with logos, titles, merged cells.
+// Scans all sheets and all rows to find the best data table automatically.
+function smartParseExcel(workbook: XLSX.WorkBook): Record<string, unknown>[] {
+  for (const sheetName of workbook.SheetNames) {
+    const sheet = workbook.Sheets[sheetName];
+    const raw = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: null });
+
+    // Find the row with the most non-empty cells → that's the header row
+    let headerRowIdx = 0;
+    let maxNonEmpty = 0;
+    for (let i = 0; i < Math.min(raw.length, 40); i++) {
+      const row = raw[i] as unknown[];
+      const count = row.filter(v => v !== null && v !== undefined && v !== '').length;
+      if (count > maxNonEmpty) { maxNonEmpty = count; headerRowIdx = i; }
+    }
+
+    if (maxNonEmpty < 2) continue; // This sheet has no usable table
+
+    // Build header names — blank cells get generic names Col1, Col2...
+    const headerRow = raw[headerRowIdx] as unknown[];
+    const headers = headerRow.map((h, i) =>
+      (h !== null && h !== undefined && String(h).trim() !== '')
+        ? String(h).trim()
+        : `Col${i + 1}`
+    );
+
+    // Collect data rows after the header, skip fully-empty rows
+    const dataRows: Record<string, unknown>[] = [];
+    for (let i = headerRowIdx + 1; i < raw.length; i++) {
+      const row = raw[i] as unknown[];
+      const hasValue = row.some(v => v !== null && v !== undefined && v !== '');
+      if (!hasValue) continue;
+      const obj: Record<string, unknown> = {};
+      headers.forEach((h, j) => { if (row[j] !== null) obj[h] = row[j]; });
+      dataRows.push(obj);
+    }
+
+    if (dataRows.length > 0) return dataRows;
+  }
+  return [];
+}
+
 // POST /api/analytics/sales-report  (multipart/form-data, field: "file")
 export const uploadSalesReport = async (req: Request, res: Response) => {
   try {
@@ -108,21 +150,11 @@ export const uploadSalesReport = async (req: Request, res: Response) => {
 
     if (!file) return sendError(res, 'Vui lòng chọn file Excel hoặc CSV', 400);
 
-    // Parse from memory buffer (no disk write needed)
     const workbook = XLSX.read(file.buffer, { type: 'buffer' });
-    const sheetName = workbook.SheetNames[0];
-    const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(workbook.Sheets[sheetName]);
+    const rows = smartParseExcel(workbook);
 
-    if (rows.length === 0) return sendError(res, 'File không có dữ liệu', 400);
-
-    // Only require at least 2 columns and at least 1 numeric column — AI handles the rest
-    const headers = Object.keys(rows[0]);
-    if (headers.length < 2) {
-      return sendError(res, 'File cần có ít nhất 2 cột dữ liệu', 400);
-    }
-    const hasNumeric = headers.some(h => typeof rows[0][h] === 'number');
-    if (!hasNumeric) {
-      return sendError(res, 'File cần có ít nhất 1 cột số (doanh thu, chi phí, v.v.)', 400);
+    if (rows.length === 0) {
+      return sendError(res, 'Không tìm thấy bảng dữ liệu trong file. Đảm bảo file có ít nhất 1 bảng với tiêu đề cột.', 400);
     }
 
     const report = await prisma.salesReport.create({
