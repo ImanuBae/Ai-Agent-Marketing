@@ -101,24 +101,35 @@ export const getOverview = async (req: Request, res: Response) => {
 };
 
 // Parses any Excel — handles complex layouts with logos, titles, merged cells.
-// Scans all sheets and all rows to find the best data table automatically.
+// Evaluates every sheet and returns the table with the most columns × data rows.
 function smartParseExcel(workbook: XLSX.WorkBook): Record<string, unknown>[] {
+  let best: { dataRows: Record<string, unknown>[]; score: number } | null = null;
+
   for (const sheetName of workbook.SheetNames) {
     const sheet = workbook.Sheets[sheetName];
     const raw = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1, defval: null });
+    if (raw.length === 0) continue;
 
-    // Find the row with the most non-empty cells → that's the header row
-    let headerRowIdx = 0;
-    let maxNonEmpty = 0;
+    // Header row = first row (within first 40) with ≥2 non-empty cells where
+    // most cells look like labels (strings), not a lone title/logo row.
+    let headerRowIdx = -1;
+    let headerColCount = 0;
     for (let i = 0; i < Math.min(raw.length, 40); i++) {
       const row = raw[i] as unknown[];
-      const count = row.filter(v => v !== null && v !== undefined && v !== '').length;
-      if (count > maxNonEmpty) { maxNonEmpty = count; headerRowIdx = i; }
+      const nonEmpty = row.filter(v => v !== null && v !== undefined && v !== '');
+      if (nonEmpty.length < 2) continue;
+
+      const labelLike = nonEmpty.filter(v => typeof v === 'string' || typeof v === 'boolean').length;
+      if (labelLike < Math.ceil(nonEmpty.length / 2)) continue;
+
+      if (nonEmpty.length > headerColCount) {
+        headerColCount = nonEmpty.length;
+        headerRowIdx = i;
+      }
     }
 
-    if (maxNonEmpty < 2) continue; // This sheet has no usable table
+    if (headerRowIdx < 0) continue;
 
-    // Build header names — blank cells get generic names Col1, Col2...
     const headerRow = raw[headerRowIdx] as unknown[];
     const headers = headerRow.map((h, i) =>
       (h !== null && h !== undefined && String(h).trim() !== '')
@@ -126,20 +137,24 @@ function smartParseExcel(workbook: XLSX.WorkBook): Record<string, unknown>[] {
         : `Col${i + 1}`
     );
 
-    // Collect data rows after the header, skip fully-empty rows
     const dataRows: Record<string, unknown>[] = [];
     for (let i = headerRowIdx + 1; i < raw.length; i++) {
       const row = raw[i] as unknown[];
       const hasValue = row.some(v => v !== null && v !== undefined && v !== '');
       if (!hasValue) continue;
       const obj: Record<string, unknown> = {};
-      headers.forEach((h, j) => { if (row[j] !== null) obj[h] = row[j]; });
+      // Always emit every header key so column count is stable (merged/sparse cells).
+      headers.forEach((h, j) => { obj[h] = row[j] ?? null; });
       dataRows.push(obj);
     }
 
-    if (dataRows.length > 0) return dataRows;
+    if (dataRows.length === 0) continue;
+
+    const score = headers.length * dataRows.length;
+    if (!best || score > best.score) best = { dataRows, score };
   }
-  return [];
+
+  return best?.dataRows ?? [];
 }
 
 // POST /api/analytics/sales-report  (multipart/form-data, field: "file")
@@ -236,6 +251,15 @@ export const analyzeCampaignHandler = async (req: Request, res: Response) => {
     }
 
     let rows = (report.data as Record<string, unknown>[]);
+
+    const columnCount = rows.length > 0 ? Object.keys(rows[0]).length : 0;
+    if (columnCount < 2) {
+      return sendError(
+        res,
+        'Báo cáo này chỉ có 1 cột (file đã upload trước khi sửa parser). Vui lòng upload lại file Excel.',
+        400,
+      );
+    }
 
     // Auto-detect date column (handles any language)
     const allHeaders = rows.length > 0 ? Object.keys(rows[0]) : [];
