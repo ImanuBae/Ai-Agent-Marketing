@@ -68,6 +68,12 @@ export interface MlCampaignInsights {
   modelR2: number;
   userR2: number | null;
   mape: number | null;
+  confidence: {
+    level: 'high' | 'medium' | 'low';
+    score: number;
+    canCompareForecast: boolean;
+    reasons: string[];
+  };
   effectivenessScore: number;
   recommendation: Recommendation;
   mappedColumns: MappedColumns;
@@ -501,6 +507,56 @@ function scoreGenericFinancialRows(rows: MlRow[]): {
     recommendation: recommendationFromScore(score),
     mape: null,
     r2: null,
+  };
+}
+
+function buildModelConfidence(
+  hasChannelBreakdown: boolean,
+  scored: { mape: number | null; r2: number | null },
+  mapped: MappedColumns,
+) {
+  const reasons: string[] = [];
+  let score = hasChannelBreakdown ? 70 : 35;
+
+  if (hasChannelBreakdown) {
+    reasons.push('File co breakdown chi phi theo kenh, co the so sanh actual voi forecast ML.');
+  } else {
+    reasons.push('File chi co tong chi phi, forecast ML chi nen xem nhu tham chieu tong quat.');
+  }
+
+  if (mapped.inferred) {
+    score -= 15;
+    reasons.push('Mot so cot duoc suy luan tu du lieu so, nen can kiem tra lai mapping.');
+  }
+
+  if (scored.r2 !== null) {
+    if (scored.r2 >= 0.6) {
+      score += 15;
+      reasons.push('R2 tren file upload kha tot.');
+    } else if (scored.r2 < 0) {
+      score -= 20;
+      reasons.push('R2 tren file upload thap, model khong fit tot voi file nay.');
+    }
+  }
+
+  if (scored.mape !== null) {
+    if (scored.mape <= 0.2) {
+      score += 10;
+      reasons.push('MAPE thap, sai lech forecast trong nguong chap nhan.');
+    } else if (scored.mape >= 0.5) {
+      score -= 15;
+      reasons.push('MAPE cao, khong nen ra quyet dinh chi dua vao forecast.');
+    }
+  }
+
+  const finalScore = Math.max(0, Math.min(100, Math.round(score)));
+  const level: 'high' | 'medium' | 'low' = finalScore >= 70 ? 'high' : finalScore >= 45 ? 'medium' : 'low';
+
+  return {
+    level,
+    score: finalScore,
+    canCompareForecast: hasChannelBreakdown,
+    reasons,
   };
 }
 
@@ -1017,6 +1073,7 @@ export function scoreCampaign(rows: Record<string, unknown>[]): MlCampaignInsigh
   const scored = hasChannelBreakdown
     ? scoreCampaignRows(mlRows, model)
     : scoreGenericFinancialRows(mlRows);
+  const confidence = buildModelConfidence(hasChannelBreakdown, scored, mapped);
   const channelImpact = Object.fromEntries(
     model.features.map(feature => [
       feature,
@@ -1030,6 +1087,7 @@ export function scoreCampaign(rows: Record<string, unknown>[]): MlCampaignInsigh
     modelR2: model.metrics.test.r2,
     userR2: scored.r2,
     mape: scored.mape,
+    confidence,
     effectivenessScore: scored.score,
     recommendation: scored.recommendation,
     mappedColumns: mapped,

@@ -13,6 +13,24 @@ import {
   scoreCampaign,
 } from '../services/ml-campaign.service';
 
+function parseUploadedNumber(value: unknown): number {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value !== 'string') return 0;
+
+  const cleaned = value
+    .replace(/[^\d,.-]/g, '')
+    .replace(/(?!^)-/g, '');
+
+  if (!cleaned) return 0;
+
+  const normalized = cleaned
+    .replace(/[.,](?=\d{3}(\D|$))/g, '')
+    .replace(',', '.');
+
+  const n = Number(normalized);
+  return Number.isFinite(n) ? n : 0;
+}
+
 // GET /api/analytics/overview
 export const getOverview = async (req: Request, res: Response) => {
   try {
@@ -326,7 +344,7 @@ export const analyzeCampaignHandler = async (req: Request, res: Response) => {
     const { mappedColumns } = mlInsights;
     const chartData = rows.map(r => ({
       date:     String(r[mappedColumns.date ?? dateCol] ?? ''),
-      revenue:  Number(r[mappedColumns.sales ?? ''] ?? 0),
+      revenue:  parseUploadedNumber(r[mappedColumns.sales ?? '']),
       activity: 0,
     }));
 

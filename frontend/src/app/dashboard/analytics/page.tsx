@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend,
@@ -56,6 +56,12 @@ interface CampaignAnalysis {
     modelR2: number;
     userR2: number | null;
     mape: number | null;
+    confidence: {
+      level: "high" | "medium" | "low";
+      score: number;
+      canCompareForecast: boolean;
+      reasons: string[];
+    };
     channelImpact: Record<string, string>;
     suggestedBudgetShift: string;
     predictedVsActual: {
@@ -145,6 +151,11 @@ const PLATFORM_COLORS: Record<string, string> = {
 };
 
 const CHART_COLORS = ["#0F766E", "#14B8A6", "#F59E0B", "#E8734A", "#1877F2", "#64748B"];
+const CONFIDENCE_STYLE = {
+  high: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300",
+  medium: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300",
+  low: "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300",
+};
 
 function fmtDate(iso: string) {
   const d = new Date(iso);
@@ -163,6 +174,14 @@ function fmtMetric(label: string, value: number) {
   if (/ctr|cvr|roi|error/i.test(label)) return fmtPct(value);
   if (/cpc|cpm|cpa|spend|cost|chi/i.test(label)) return fmtVND(value);
   return new Intl.NumberFormat("vi-VN", { notation: "compact", maximumFractionDigits: 1 }).format(value);
+}
+
+function apiErrorMessage(error: unknown, fallback: string) {
+  if (typeof error === "object" && error !== null && "response" in error) {
+    const response = (error as { response?: { data?: { message?: unknown } } }).response;
+    if (typeof response?.data?.message === "string") return response.data.message;
+  }
+  return fallback;
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -385,16 +404,16 @@ function CampaignTab() {
   const [dragOver, setDragOver] = useState(false);
   const [biChannel, setBiChannel] = useState("all");
 
-  const fetchReports = async () => {
+  const fetchReports = useCallback(async () => {
     try {
       const res = await api.get("/analytics/sales-reports");
       const list: SalesReport[] = res.data.data;
       setReports(list);
-      if (list.length > 0 && !selectedReportId) setSelectedReportId(list[0].id);
+      if (list.length > 0) setSelectedReportId(current => current || list[0].id);
     } catch { /* silent */ }
-  };
+  }, []);
 
-  useEffect(() => { fetchReports(); }, []);
+  useEffect(() => { fetchReports(); }, [fetchReports]);
 
   const handleUpload = async (file: File) => {
     if (!file) return;
@@ -407,8 +426,8 @@ function CampaignTab() {
       });
       await fetchReports();
       setSelectedReportId(res.data.data.id);
-    } catch (e: any) {
-      setError(e?.response?.data?.message ?? "Không thể upload file");
+    } catch (e: unknown) {
+      setError(apiErrorMessage(e, "Không thể upload file"));
     } finally { setUploading(false); }
   };
 
@@ -435,8 +454,8 @@ function CampaignTab() {
       });
       setAnalysis(res.data.data);
       setBiChannel("all");
-    } catch (e: any) {
-      setError(e?.response?.data?.message ?? "Không thể phân tích. Vui lòng thử lại.");
+    } catch (e: unknown) {
+      setError(apiErrorMessage(e, "Không thể phân tích. Vui lòng thử lại."));
     } finally { setAnalyzing(false); }
   };
 
@@ -459,22 +478,39 @@ function CampaignTab() {
     return Object.values(weeks);
   })();
 
-  const biChannels = analysis?.ml?.deepDive?.channelDiagnostics.map(row => row.channel) ?? [];
-  const biRows = analysis?.ml?.predictedVsActual.map(row => {
-    const spend = biChannel === "all"
-      ? Object.values(row.channels).reduce((total, value) => total + value, 0)
-      : row.channels[biChannel] ?? 0;
-    const roi = row.actual !== null && spend > 0 ? (row.actual - spend) / spend : null;
-    const errorPct = row.actual !== null && row.actual > 0 ? (row.actual - row.predicted) / row.actual : null;
-    return {
-      date: row.date,
-      actual: row.actual,
-      predicted: row.predicted,
-      spend,
-      roi,
-      errorPct,
-    };
-  }) ?? [];
+  const showMlForecastComparison = analysis?.ml?.confidence.canCompareForecast === true;
+  const biChannels = showMlForecastComparison
+    ? analysis?.ml?.deepDive?.channelDiagnostics.map(row => row.channel) ?? []
+    : [];
+  const shouldUseMonthlyBiRows = analysis?.ml?.analysisMode === "totalSpend"
+    && Boolean(analysis.ml.deepDive?.monthlyPivot.length);
+  const biRows = shouldUseMonthlyBiRows
+    ? analysis?.ml?.deepDive?.monthlyPivot.map(row => {
+      const errorPct = row.actual !== null && row.actual > 0 ? (row.actual - row.predicted) / row.actual : null;
+      return {
+        date: row.month,
+        actual: row.actual,
+        predicted: row.predicted,
+        spend: row.spend,
+        roi: row.roi,
+        errorPct,
+      };
+    }) ?? []
+    : analysis?.ml?.predictedVsActual.map(row => {
+      const spend = biChannel === "all"
+        ? Object.values(row.channels).reduce((total, value) => total + value, 0)
+        : row.channels[biChannel] ?? 0;
+      const roi = row.actual !== null && spend > 0 ? (row.actual - spend) / spend : null;
+      const errorPct = row.actual !== null && row.actual > 0 ? (row.actual - row.predicted) / row.actual : null;
+      return {
+        date: row.date,
+        actual: row.actual,
+        predicted: row.predicted,
+        spend,
+        roi,
+        errorPct,
+      };
+    }) ?? [];
   const biActual = biRows.reduce((total, row) => total + (row.actual ?? 0), 0);
   const biSpend = biRows.reduce((total, row) => total + row.spend, 0);
   const biPredicted = biRows.reduce((total, row) => total + row.predicted, 0);
@@ -482,7 +518,7 @@ function CampaignTab() {
   const biRoi = biActual > 0 && biSpend > 0 ? (biActual - biSpend) / biSpend : null;
   const biRoas = biSpend > 0 ? biActual / biSpend : null;
   const biVariance = biActual > 0 ? (biActual - biPredicted) / biActual : null;
-  const biStatus = biRoi === null ? "Chua du du lieu" : biRoi >= 0.5 ? "Tot" : biRoi >= 0 ? "Can theo doi" : "Can xu ly";
+  const biStatus = biRoi === null ? "Chưa đủ dữ liệu" : biRoi >= 0.5 ? "Tốt" : biRoi >= 0 ? "Cần theo dõi" : "Cần xử lý";
   const biStatusClass = biRoi === null
     ? "bg-gray-100 text-gray-500 dark:bg-white/5 dark:text-gray-400"
     : biRoi >= 0.5
@@ -495,12 +531,15 @@ function CampaignTab() {
     .slice()
     .sort((a, b) => (b.roi ?? -Infinity) - (a.roi ?? -Infinity))
     .slice(0, 5);
+  const biAllChannelSpend = analysis?.ml?.predictedVsActual.reduce((total, row) => {
+    return total + Object.values(row.channels).reduce((sum, value) => sum + value, 0);
+  }, 0) ?? 0;
   const biSpendMix = biChannels.map(channel => {
     const spend = analysis?.ml?.predictedVsActual.reduce((total, row) => total + (row.channels[channel] ?? 0), 0) ?? 0;
     return {
       channel,
       spend,
-      share: biSpend > 0 ? spend / biSpend : 0,
+      share: biAllChannelSpend > 0 ? spend / biAllChannelSpend : 0,
     };
   }).filter(row => row.spend > 0);
   const biComparison = analysis?.ml?.deepDive?.monthlyPivot.slice(0, 12).map(row => {
@@ -510,15 +549,13 @@ function CampaignTab() {
       actual: row.actual,
       predicted: row.predicted,
       variance,
-      status: variance === null ? "Chua co actual" : variance >= 0 ? "Vuot du doan" : "Thap hon du doan",
+      status: variance === null ? "Chưa có actual" : variance >= 0 ? "Vượt dự đoán" : "Thấp hơn dự đoán",
     };
   }) ?? [];
   const biLargestGap = biComparison
     .filter(row => row.variance !== null)
     .slice()
     .sort((a, b) => Math.abs(b.variance ?? 0) - Math.abs(a.variance ?? 0))[0];
-  const showMlForecastComparison = analysis?.ml?.analysisMode === "channel";
-
   const exportBiCsv = () => {
     if (!biRows.length) return;
     const header = ["date", "actual", "predicted", "spend", "roi", "errorPct"];
@@ -700,6 +737,20 @@ function CampaignTab() {
                 </div>
               )}
 
+              <div className="mb-4 rounded-2xl border border-gray-100 dark:border-white/5 p-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+                  <p className="text-xs font-semibold text-gray-500">Độ tin cậy forecast</p>
+                  <span className={`w-fit px-3 py-1 rounded-full text-xs font-bold ${CONFIDENCE_STYLE[analysis.ml.confidence.level]}`}>
+                    {analysis.ml.confidence.level.toUpperCase()} · {analysis.ml.confidence.score}/100
+                  </span>
+                </div>
+                <div className="space-y-1">
+                  {analysis.ml.confidence.reasons.map((reason) => (
+                    <p key={reason} className="text-xs text-gray-600 dark:text-gray-300">{reason}</p>
+                  ))}
+                </div>
+              </div>
+
               {analysis.ml.analysisMode === "channel" ? (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   <div className="rounded-2xl border border-gray-100 dark:border-white/5 p-4">
@@ -720,7 +771,7 @@ function CampaignTab() {
               ) : (<>
                 {analysis.ml.deepDive && analysis.ml.deepDive.chartTemplates.expenseBreakdown.length > 0 && (
                   <div className="rounded-2xl border border-gray-100 dark:border-white/5 p-4">
-                    <p className="text-xs font-semibold text-gray-500 mb-3">Top chi phi</p>
+                    <p className="text-xs font-semibold text-gray-500 mb-3">Top chi phí</p>
                     <ResponsiveContainer width="100%" height={240}>
                       <BarChart data={analysis.ml.deepDive.chartTemplates.expenseBreakdown} layout="vertical">
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
@@ -735,7 +786,7 @@ function CampaignTab() {
 
                 {analysis.ml.deepDive && analysis.ml.deepDive.chartTemplates.profitTrend.length > 0 && (
                   <div className="rounded-2xl border border-gray-100 dark:border-white/5 p-4">
-                    <p className="text-xs font-semibold text-gray-500 mb-3">Loi nhuan theo thang</p>
+                    <p className="text-xs font-semibold text-gray-500 mb-3">Lợi nhuận theo tháng</p>
                     <ResponsiveContainer width="100%" height={220}>
                       <LineChart data={analysis.ml.deepDive.chartTemplates.profitTrend}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -745,7 +796,7 @@ function CampaignTab() {
                         <Legend />
                         <Line type="monotone" dataKey="revenue" name="Doanh thu" stroke="#1877F2" strokeWidth={2.5} dot={false} />
                         <Line type="monotone" dataKey="expenses" name="Chi phi" stroke="#F59E0B" strokeWidth={2.5} dot={false} />
-                        <Line type="monotone" dataKey="profit" name="Loi nhuan" stroke="#10B981" strokeWidth={2.5} dot={false} />
+                        <Line type="monotone" dataKey="profit" name="Lợi nhuận" stroke="#10B981" strokeWidth={2.5} dot={false} />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
@@ -855,21 +906,21 @@ function CampaignTab() {
 
               <div className="mb-5 flex flex-col gap-4">
                 <div className="rounded-2xl border border-[#E8734A]/20 bg-[#E8734A]/5 px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-                  <p className="font-black text-gray-900 dark:text-white mb-1">Cach doc nhanh dashboard</p>
+                  <p className="font-black text-gray-900 dark:text-white mb-1">Cách đọc nhanh dashboard</p>
                   <p>
-                    Chon mot kenh ben duoi de loc rieng chi phi va ROI cua kenh do. Neu xem "Tat ca kenh",
-                    dashboard tong hop toan bo ngan sach. Uu tien doc theo thu tu: KPI tong quan, co cau chi phi,
-                    so sanh thuc te voi du doan ML, sau do xem bang cac ky hieu qua nhat.
+                    Chọn một kênh bên dưới để lọc riêng chi phí và ROI của kênh đó. Nếu xem &quot;Tất cả kênh&quot;,
+                    dashboard tổng hợp toàn bộ ngân sách. Ưu tiên đọc theo thứ tự: KPI tổng quan, cơ cấu chi phí,
+                    so sánh thực tế với dự đoán ML, sau đó xem bảng các kỳ hiệu quả nhất.
                   </p>
                 </div>
 
                 {!showMlForecastComparison && (
                   <div className="rounded-2xl border border-amber-200 dark:border-amber-500/20 bg-amber-50 dark:bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
-                    <p className="font-black mb-1">Luu y ve du doan ML</p>
+                    <p className="font-black mb-1">Lưu ý về dự đoán ML</p>
                     <p>
-                      File nay dang o che do tong chi phi, khong co breakdown chi phi theo kenh/campaign. Vi vay ML baseline
-                      chi duoc dung nhu diem tham chieu tong quat, khong nen doc nhu mot du bao doanh thu chinh xac. Voi loai
-                      file nay, nen uu tien xem doanh thu, chi phi, loi nhuan, ROI va P&L.
+                      File này đang ở chế độ tổng chi phí, không có breakdown chi phí theo kênh/campaign. Vì vậy ML baseline
+                      chỉ được dùng như điểm tham chiếu tổng quát, không nên đọc như một dự báo doanh thu chính xác. Với loại
+                      file này, nên ưu tiên xem doanh thu, chi phí, lợi nhuận, ROI và P&L.
                     </p>
                   </div>
                 )}
@@ -885,7 +936,7 @@ function CampaignTab() {
                           : "bg-white dark:bg-white/5 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-white/10"
                       }`}
                     >
-                      Tat ca kenh
+                      Tất cả kênh
                     </button>
                     {biChannels.map((channel) => (
                       <button
@@ -916,12 +967,12 @@ function CampaignTab() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
                   {[
-                    { label: "Doanh thu thuc te", value: fmtVND(biActual), sub: showMlForecastComparison ? `Tong ket qua da ghi nhan. Lech voi ML: ${fmtPct(biVariance)}` : "Tong doanh thu/ket qua thuc te trong file." },
+                    { label: "Doanh thu thực tế", value: fmtVND(biActual), sub: showMlForecastComparison ? `Tổng kết quả đã ghi nhận. Lệch với ML: ${fmtPct(biVariance)}` : "Tổng doanh thu/kết quả thực tế trong file." },
                     showMlForecastComparison
-                      ? { label: "Du doan ML", value: fmtVND(biPredicted), sub: `Muc doanh thu model uoc tinh tu chi phi marketing.` }
-                      : { label: "Loi nhuan uoc tinh", value: fmtVND(biProfit), sub: "Doanh thu tru tong chi phi trong file." },
-                    { label: "Tong chi phi", value: fmtVND(biSpend), sub: biChannel === "all" ? "Chi phi cua tat ca kenh dang co trong file." : `Chi phi rieng cua kenh ${biChannel}.` },
-                    { label: "ROI / ROAS", value: fmtPct(biRoi), sub: `ROI = loi nhuan/chi phi. ROAS = ${biRoas === null ? "N/A" : `${biRoas.toFixed(2)}x doanh thu tren 1 dong chi phi`}` },
+                      ? { label: "Dự đoán ML", value: fmtVND(biPredicted), sub: `Mức doanh thu model ước tính từ chi phí marketing.` }
+                      : { label: "Lợi nhuận ước tính", value: fmtVND(biProfit), sub: "Doanh thu trừ tổng chi phí trong file." },
+                    { label: "Tổng chi phí", value: fmtVND(biSpend), sub: biChannel === "all" ? "Chi phí của tất cả kênh đang có trong file." : `Chi phí riêng của kênh ${biChannel}.` },
+                    { label: "ROI / ROAS", value: fmtPct(biRoi), sub: `ROI = lợi nhuận/chi phí. ROAS = ${biRoas === null ? "N/A" : `${biRoas.toFixed(2)}x doanh thu trên 1 đồng chi phí`}` },
                   ].map((item) => (
                     <div key={item.label} className="rounded-2xl bg-gray-50 dark:bg-white/5 p-4 border border-gray-100 dark:border-white/5">
                       <p className="text-xs font-semibold text-gray-500 mb-1">{item.label}</p>
@@ -936,9 +987,9 @@ function CampaignTab() {
                     {biSpendMix.length > 0 && (
                       <div className="rounded-2xl border border-gray-100 dark:border-white/5 p-4">
                         <div className="mb-3">
-                          <p className="text-sm font-black text-gray-900 dark:text-white">Co cau chi phi theo kenh</p>
+                          <p className="text-sm font-black text-gray-900 dark:text-white">Cơ cấu chi phí theo kênh</p>
                           <p className="text-xs text-gray-400 mt-1">
-                            Dung de tra loi cau hoi: ngan sach dang do vao kenh nao nhieu nhat? Mieng cang lon nghia la kenh do chiem ty trong chi phi cang cao. Neu mot kenh chiem ty trong lon nhung ROI thap, can xem lai cach phan bo ngan sach.
+                            Dùng để trả lời câu hỏi: ngân sách đang đổ vào kênh nào nhiều nhất? Miếng càng lớn nghĩa là kênh đó chiếm tỷ trọng chi phí càng cao. Nếu một kênh chiếm tỷ trọng lớn nhưng ROI thấp, cần xem lại cách phân bổ ngân sách.
                           </p>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-4 items-center">
@@ -983,11 +1034,11 @@ function CampaignTab() {
                     {showMlForecastComparison && biComparison.length > 0 && (
                       <div className="rounded-2xl border border-gray-100 dark:border-white/5 p-4">
                         <div className="mb-3">
-                          <p className="text-sm font-black text-gray-900 dark:text-white">So sanh doanh thu thuc te voi du doan ML</p>
+                          <p className="text-sm font-black text-gray-900 dark:text-white">So sánh doanh thu thực tế với dự đoán ML</p>
                           <p className="text-xs text-gray-400 mt-1">
                             {biLargestGap
-                              ? `Cot xanh dam la doanh thu thuc te, cot xanh nhat la du doan ML. Lech lon nhat o ${biLargestGap.month}: ${fmtPct(biLargestGap.variance)}. Gia tri duong nghia la thuc te cao hon du doan; gia tri am nghia la thuc te thap hon du doan.`
-                              : "Cot xanh dam la doanh thu thuc te, cot xanh nhat la du doan ML. Bieu do nay giup kiem tra model dang du doan cao hay thap hon thuc te."}
+                              ? `Cột xanh đậm là doanh thu thực tế, cột xanh nhạt là dự đoán ML. Lệch lớn nhất ở ${biLargestGap.month}: ${fmtPct(biLargestGap.variance)}. Giá trị dương nghĩa là thực tế cao hơn dự đoán; giá trị âm nghĩa là thực tế thấp hơn dự đoán.`
+                              : "Cột xanh đậm là doanh thu thực tế, cột xanh nhạt là dự đoán ML. Biểu đồ này giúp kiểm tra model đang dự đoán cao hay thấp hơn thực tế."}
                           </p>
                         </div>
                         <ResponsiveContainer width="100%" height={260}>
@@ -997,8 +1048,8 @@ function CampaignTab() {
                             <YAxis tickFormatter={(v) => fmtVND(Number(v))} tick={{ fontSize: 10 }} width={44} />
                             <Tooltip formatter={(v) => [fmtVND(Number(v)), ""]} />
                             <Legend />
-                            <Bar dataKey="actual" name="Doanh thu thuc te" fill="#0F766E" radius={[4, 4, 0, 0]} />
-                            <Bar dataKey="predicted" name="ML du doan" fill="#93C5FD" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="actual" name="Doanh thu thực tế" fill="#0F766E" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey="predicted" name="ML dự đoán" fill="#93C5FD" radius={[4, 4, 0, 0]} />
                           </BarChart>
                         </ResponsiveContainer>
                       </div>
@@ -1006,11 +1057,11 @@ function CampaignTab() {
 
                     <div className="rounded-2xl border border-gray-100 dark:border-white/5 p-4">
                       <div className="mb-3">
-                        <p className="text-sm font-black text-gray-900 dark:text-white">Doanh thu thuc te so voi du doan va chi phi</p>
+                        <p className="text-sm font-black text-gray-900 dark:text-white">Doanh thu thực tế so với dự đoán và chi phí</p>
                         <p className="text-xs text-gray-400 mt-1">
                           {showMlForecastComparison
-                            ? "Dung de xem xu huong theo tung ngay/ky. Duong cam la doanh thu thuc te, xanh duong la doanh thu ML du doan, xanh la la chi phi. Khi duong chi phi tang nhung doanh thu cam khong tang tuong ung, chien dich co dau hieu kem hieu qua."
-                            : "Dung de xem xu huong theo tung ngay/ky. Duong cam la doanh thu thuc te, xanh la la chi phi. Voi file tong chi phi, he thong khong ve duong du doan ML trong bieu do nay de tranh hieu nham ve do chinh xac."}
+                            ? "Dùng để xem xu hướng theo từng ngày/kỳ. Đường cam là doanh thu thực tế, xanh dương là doanh thu ML dự đoán, xanh lá là chi phí. Khi đường chi phí tăng nhưng doanh thu cam không tăng tương ứng, chiến dịch có dấu hiệu kém hiệu quả."
+                            : "Dùng để xem xu hướng theo từng ngày/kỳ. Đường cam là doanh thu thực tế, xanh lá là chi phí. Với file tổng chi phí, hệ thống không vẽ đường dự đoán ML trong biểu đồ này để tránh hiểu nhầm về độ chính xác."}
                         </p>
                       </div>
                       <ResponsiveContainer width="100%" height={260}>
@@ -1020,30 +1071,30 @@ function CampaignTab() {
                           <YAxis tickFormatter={(v) => fmtVND(Number(v))} tick={{ fontSize: 10 }} width={44} />
                           <Tooltip formatter={(v) => [fmtVND(Number(v)), ""]} />
                           <Legend />
-                          <Line type="monotone" dataKey="actual" name="Doanh thu thuc te" stroke="#E8734A" strokeWidth={2.5} dot={false} />
+                          <Line type="monotone" dataKey="actual" name="Doanh thu thực tế" stroke="#E8734A" strokeWidth={2.5} dot={false} />
                           {showMlForecastComparison && (
-                            <Line type="monotone" dataKey="predicted" name="ML du doan" stroke="#1877F2" strokeWidth={2.5} dot={false} />
+                            <Line type="monotone" dataKey="predicted" name="ML dự đoán" stroke="#1877F2" strokeWidth={2.5} dot={false} />
                           )}
-                          <Line type="monotone" dataKey="spend" name="Chi phi" stroke="#10B981" strokeWidth={2.5} dot={false} />
+                          <Line type="monotone" dataKey="spend" name="Chi phí" stroke="#10B981" strokeWidth={2.5} dot={false} />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
 
                     <div className="rounded-2xl border border-gray-100 dark:border-white/5 p-4 overflow-x-auto">
                       <div className="mb-3">
-                        <p className="text-sm font-black text-gray-900 dark:text-white">Top ky hieu qua nhat</p>
+                        <p className="text-sm font-black text-gray-900 dark:text-white">Top kỳ hiệu quả nhất</p>
                         <p className="text-xs text-gray-400 mt-1">
-                          Bang nay sap xep cac ky theo ROI. "Tot" nghia la doanh thu vuot chi phi ro rang, "Theo doi" nghia la co lai nhung chua manh, "Lo" nghia la chi phi cao hon doanh thu trong ky do.
+                          Bảng này sắp xếp các kỳ theo ROI. &quot;Tốt&quot; nghĩa là doanh thu vượt chi phí rõ ràng, &quot;Theo dõi&quot; nghĩa là có lãi nhưng chưa mạnh, &quot;Lỗ&quot; nghĩa là chi phí cao hơn doanh thu trong kỳ đó.
                         </p>
                       </div>
                       <table className="w-full min-w-[520px] text-xs">
                         <thead className="text-gray-400">
                           <tr className="border-b border-gray-100 dark:border-white/5">
-                            <th className="py-2 text-left">Ky</th>
+                            <th className="py-2 text-left">Kỳ</th>
                             <th className="py-2 text-right">Doanh thu</th>
-                            <th className="py-2 text-right">Chi phi</th>
+                            <th className="py-2 text-right">Chi phí</th>
                             <th className="py-2 text-right">ROI</th>
-                            <th className="py-2 text-right">Nhan xet</th>
+                            <th className="py-2 text-right">Nhận xét</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1054,7 +1105,7 @@ function CampaignTab() {
                               <td className="py-2 text-right text-gray-600 dark:text-gray-400">{fmtVND(row.spend)}</td>
                               <td className="py-2 text-right font-bold text-gray-800 dark:text-gray-200">{fmtPct(row.roi)}</td>
                               <td className={`py-2 text-right font-bold ${(row.roi ?? 0) >= 0.5 ? "text-emerald-600" : (row.roi ?? 0) >= 0 ? "text-amber-600" : "text-red-500"}`}>
-                                {(row.roi ?? -1) >= 0.5 ? "Tot" : (row.roi ?? -1) >= 0 ? "Theo doi" : "Lo"}
+                                {(row.roi ?? -1) >= 0.5 ? "Tốt" : (row.roi ?? -1) >= 0 ? "Theo dõi" : "Lỗ"}
                               </td>
                             </tr>
                           ))}
@@ -1074,9 +1125,9 @@ function CampaignTab() {
                         <th className="py-2 text-left">Thang</th>
                         <th className="py-2 text-right">Doanh thu</th>
                         <th className="py-2 text-right">Giam tru</th>
-                        <th className="py-2 text-right">Loi nhuan gop</th>
+                        <th className="py-2 text-right">Lợi nhuận gộp</th>
                         <th className="py-2 text-right">Chi phi</th>
-                        <th className="py-2 text-right">Loi nhuan</th>
+                        <th className="py-2 text-right">Lợi nhuận</th>
                         <th className="py-2 text-right">Margin</th>
                       </tr>
                     </thead>
