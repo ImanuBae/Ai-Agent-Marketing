@@ -5,6 +5,11 @@
   "main": "index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "ml:train": "node scripts/run-ml-train.js",
+    "ml:export-platform-training": "node scripts/export-platform-training.js",
+    "ml:retrain-platform": "npm run ml:export-platform-training && npm run ml:train",
+    "ml:smoke": "npm run build && node scripts/smoke-ml.js",
+    "sample:platform": "node scripts/generate-platform-sample-data.js",
     "build": "tsc",
     "start": "node dist/index.js"
   },

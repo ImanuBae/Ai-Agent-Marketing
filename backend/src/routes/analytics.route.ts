@@ -7,6 +7,7 @@ import {
   getSalesReports,
   analyzeCampaignHandler,
   getSampleFile,
+  getPlatformSampleFile,
 } from '../controllers/analytics.controller';
 
 const router = Router();
@@ -18,5 +19,6 @@ router.post('/sales-report', authenticate, excelUpload.single('file'), uploadSal
 router.get('/sales-reports', authenticate, getSalesReports);
 router.post('/analyze-campaign', authenticate, analyzeCampaignHandler);
 router.get('/sample-file', getSampleFile);
+router.get('/sample-platform-file', getPlatformSampleFile);
 
 export default router;

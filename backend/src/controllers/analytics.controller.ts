@@ -5,7 +5,13 @@ import fs from 'fs';
 import prisma from '../utils/prisma';
 
 import { sendSuccess, sendError } from '../utils/response';
-import { analyzeCampaign as geminiAnalyzeCampaign } from '../services/gemini.service';
+import { narrateCampaignAnalysis } from '../services/gemini.service';
+import {
+  buildDetailedMlAnalysisText,
+  extractPlatformTrainingRows,
+  MlInputError,
+  scoreCampaign,
+} from '../services/ml-campaign.service';
 
 // GET /api/analytics/overview
 export const getOverview = async (req: Request, res: Response) => {
@@ -281,25 +287,52 @@ export const analyzeCampaignHandler = async (req: Request, res: Response) => {
       return sendError(res, 'Không có dữ liệu trong khoảng thời gian đã chọn', 400);
     }
 
-    const aiResult = await geminiAnalyzeCampaign(rows);
+    const mlInsights = scoreCampaign(rows);
+
+    let analysisText = buildDetailedMlAnalysisText(mlInsights);
+    try {
+      analysisText = await narrateCampaignAnalysis(rows, mlInsights);
+    } catch (error) {
+      console.warn('Gemini narrative unavailable, using ML template text:', error);
+    }
 
     const analysis = await prisma.campaignAnalysis.create({
       data: {
         userId,
         salesReportId,
-        analysisText: aiResult.analysisText,
-        recommendation: aiResult.recommendation,
-        effectivenessScore: aiResult.effectivenessScore,
+        analysisText,
+        recommendation: mlInsights.recommendation,
+        effectivenessScore: mlInsights.effectivenessScore,
+        mlInsights: mlInsights as object,
       },
     });
 
-    // Build chart data using AI-identified columns
-    const { dateColumn, revenueColumn, activityColumn } = aiResult;
+    if (mlInsights.analysisMode === 'channel' && mlInsights.modelVersion === 'platform-baseline-v1') {
+      const trainingRows = extractPlatformTrainingRows(rows);
+      if (trainingRows.length >= 3) {
+        await prisma.$executeRaw`
+          INSERT INTO "platform_training_snapshots"
+            ("id", "userId", "salesReportId", "rowCount", "rows", "updatedAt")
+          VALUES
+            (${`pts_${salesReportId}`}, ${userId}, ${salesReportId}, ${trainingRows.length}, ${JSON.stringify(trainingRows)}::jsonb, NOW())
+          ON CONFLICT ("salesReportId") DO UPDATE SET
+            "rowCount" = EXCLUDED."rowCount",
+            "rows" = EXCLUDED."rows",
+            "updatedAt" = NOW()
+        `;
+      }
+    }
+
+    const { mappedColumns } = mlInsights;
     const chartData = rows.map(r => ({
-      date:     String(r[dateColumn ?? dateCol] ?? ''),
-      revenue:  Number(r[revenueColumn ?? ''] ?? 0),
-      activity: Number(r[activityColumn ?? ''] ?? 0),
+      date:     String(r[mappedColumns.date ?? dateCol] ?? ''),
+      revenue:  Number(r[mappedColumns.sales ?? ''] ?? 0),
+      activity: 0,
     }));
+
+    mlInsights.predictedVsActual.forEach((point, index) => {
+      if (chartData[index]) chartData[index].activity = point.predicted;
+    });
 
     return sendSuccess(res, 'Phân tích hoàn tất', {
       id: analysis.id,
@@ -309,11 +342,15 @@ export const analyzeCampaignHandler = async (req: Request, res: Response) => {
       effectivenessScore: analysis.effectivenessScore,
       rowsAnalyzed: rows.length,
       createdAt: analysis.createdAt,
-      revenueLabel: revenueColumn ?? 'Doanh thu',
-      activityLabel: activityColumn ?? 'Hoạt động',
+      revenueLabel: mappedColumns.sales ?? 'Doanh thu',
+      activityLabel: 'Dự đoán ML',
       chartData,
+      ml: mlInsights,
     });
   } catch (error: any) {
+    if (error instanceof MlInputError) {
+      return sendError(res, error.message, error.status);
+    }
     if (error?.status === 503 || error?.name === 'QuotaExhaustedError') {
       return sendError(res, 'Quota AI đã hết, vui lòng thử lại vào ngày mai', 503);
     }
@@ -328,4 +365,12 @@ export const getSampleFile = (_req: Request, res: Response) => {
     return sendError(res, 'File mẫu chưa được tạo', 404);
   }
   res.download(filePath, 'sample-campaign-skincare.xlsx');
+};
+
+export const getPlatformSampleFile = (_req: Request, res: Response) => {
+  const filePath = path.join(__dirname, '../../data/sample-platform-campaign.xlsx');
+  if (!fs.existsSync(filePath)) {
+    return sendError(res, 'File mau platform chua duoc tao', 404);
+  }
+  res.download(filePath, 'sample-platform-campaign.xlsx');
 };

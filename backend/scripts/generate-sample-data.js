@@ -12,22 +12,11 @@
  */
 
 const XLSX = require('xlsx');
-const https = require('https');
+const fs = require('fs');
 const path = require('path');
 
-const DATA_URL = 'https://raw.githubusercontent.com/prasertcbs/basic-dataset/master/marketing.csv';
+const DATA_PATH = path.join(__dirname, '../ml/data/marketing.csv');
 const OUT_PATH = path.join(__dirname, '../data/sample-campaign-skincare.xlsx');
-
-function fetchCSV(url) {
-  return new Promise((resolve, reject) => {
-    https.get(url, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => resolve(data));
-      res.on('error', reject);
-    }).on('error', reject);
-  });
-}
 
 function parseCSV(text) {
   const lines = text.trim().split('\n');
@@ -41,8 +30,8 @@ function parseCSV(text) {
 }
 
 async function main() {
-  console.log('📥 Fetching real marketing dataset from GitHub...');
-  const csv = await fetchCSV(DATA_URL);
+  console.log('📥 Reading local marketing dataset snapshot...');
+  const csv = fs.readFileSync(DATA_PATH, 'utf8');
   const rawRows = parseCSV(csv);
   console.log(`✅ Got ${rawRows.length} real observations (youtube/facebook/newspaper spend → sales)`);
 
@@ -57,9 +46,6 @@ async function main() {
   const SPEND_SCALE = 500_000;
   const SALES_SCALE = 2_000_000;
 
-  // Normalise original values to 0-1 range for proportional use
-  const maxSales    = Math.max(...rows.map(r => r.sales));
-  const maxYoutube  = Math.max(...rows.map(r => r.youtube));
   const maxFacebook = Math.max(...rows.map(r => r.facebook));
 
   const transformed = rows.map((row, i) => {
@@ -67,15 +53,14 @@ async function main() {
     date.setDate(START_DATE.getDate() + i);
 
     // Revenue: scale real sales to 5M–30M VND/day range
-    const salesNorm = row.sales / maxSales;
-    const revenue   = Math.round(5_000_000 + salesNorm * 25_000_000);
+    const revenue = Math.round(row.sales * SALES_SCALE);
 
     // Ad spend: realistic 12–22% of revenue, split by original YouTube/Facebook ratio
-    const ytRatio  = row.youtube  / (maxYoutube  || 1);
     const fbRatio  = row.facebook / (maxFacebook || 1);
-    const totalBudget   = Math.round(revenue * (0.12 + salesNorm * 0.10));
-    const youtubeSpend  = Math.round(totalBudget * ytRatio / (ytRatio + fbRatio + 0.01));
-    const facebookSpend = totalBudget - youtubeSpend;
+    const youtubeSpend = Math.round(row.youtube * SPEND_SCALE);
+    const facebookSpend = Math.round(row.facebook * SPEND_SCALE);
+    const newspaperSpend = Math.round(row.newspaper * SPEND_SCALE);
+    const totalBudget = youtubeSpend + facebookSpend + newspaperSpend;
     const roi = parseFloat(((revenue - totalBudget) / totalBudget * 100).toFixed(1));
 
     // Social metrics derived from Facebook spend (real correlation)
@@ -90,6 +75,7 @@ async function main() {
       'Số đơn bán':        Math.round(revenue / 120_000),
       'Chi phí QC YouTube (VND)': youtubeSpend,
       'Chi phí QC Facebook (VND)': facebookSpend,
+      'Chi phí QC Báo (VND)': newspaperSpend,
       'Tổng chi phí QC (VND)': totalBudget,
       'ROI (%)':           roi,
       'Số bài đăng':       postsPublished,
@@ -103,7 +89,7 @@ async function main() {
   const ws = XLSX.utils.json_to_sheet(transformed);
   ws['!cols'] = [
     { wch: 12 }, { wch: 16 }, { wch: 12 }, { wch: 24 }, { wch: 26 },
-    { wch: 22 }, { wch: 10 }, { wch: 12 }, { wch: 16 }, { wch: 22 }, { wch: 12 },
+    { wch: 22 }, { wch: 22 }, { wch: 10 }, { wch: 12 }, { wch: 16 }, { wch: 22 }, { wch: 12 },
   ];
 
   const wb = XLSX.utils.book_new();

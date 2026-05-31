@@ -1,6 +1,7 @@
 // src/services/gemini.service.ts
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { QuotaExhaustedError, QuotaManager } from './quota.manager';
+import type { MlCampaignInsights } from './ml-campaign.service';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 const model = genAI.getGenerativeModel({ model: QuotaManager.MODEL });
@@ -473,6 +474,84 @@ effectivenessScore: 0-40 = kém (stop), 41-65 = trung bình (pivot), 66-100 = t�
 };
 
 // ── QUOTA STATUS ──────────────────────────────────────────────────────────────
+
+export const narrateCampaignAnalysis = async (
+  salesData: Record<string, unknown>[],
+  mlInsights: MlCampaignInsights,
+): Promise<string> => {
+  const rows = salesData.slice(0, 30);
+  const headers = rows.length > 0 ? Object.keys(rows[0]) : [];
+  const headerLine = headers.join(' | ');
+  const dataLines = rows.map(r =>
+    headers.map(h => {
+      const v = r[h];
+      return typeof v === 'number' ? v.toLocaleString('vi-VN') : String(v ?? '');
+    }).join(' | ')
+  ).join('\n');
+
+  const mlSummary = {
+    analysisMode: mlInsights.analysisMode,
+    modelVersion: mlInsights.modelVersion,
+    modelR2: mlInsights.modelR2,
+    userR2: mlInsights.userR2,
+    mape: mlInsights.mape,
+    effectivenessScore: mlInsights.effectivenessScore,
+    recommendation: mlInsights.recommendation,
+    warning: mlInsights.warning,
+    summary: mlInsights.deepDive.summary,
+    monthlyPivot: mlInsights.deepDive.monthlyPivot.slice(0, 12),
+    periodBreakdown: mlInsights.deepDive.periodBreakdown.slice(0, 20),
+    channelDiagnostics: mlInsights.deepDive.channelDiagnostics.slice(0, 8),
+    profitabilityByMonth: mlInsights.deepDive.profitabilityByMonth.slice(0, 12),
+    financialBreakdown: mlInsights.deepDive.financialBreakdown.slice(0, 20),
+    funnelMetrics: mlInsights.deepDive.funnelMetrics,
+    detectedSignals: mlInsights.deepDive.detectedSignals.slice(0, 12),
+    deterministicInsights: mlInsights.deepDive.insights,
+    ...(mlInsights.analysisMode === 'channel' ? {
+      channelImpact: mlInsights.channelImpact,
+      suggestedBudgetShift: mlInsights.suggestedBudgetShift,
+    } : {}),
+  };
+
+  const prompt = `
+Ban la chuyen gia BI, marketing analytics va tai chinh van hanh nguoi Viet Nam.
+Hay viet bao cao chuyen sau dua TREN KET QUA ML/DEEP DIVE da co.
+
+QUY TAC BAT BUOC:
+- Khong thay doi effectivenessScore, recommendation, R2, MAPE hoac bat ky so nao trong ML.
+- Khong bia them ket qua ngoai du lieu.
+- Neu analysisMode la totalSpend, khong nhac den YouTube/Facebook/Newspaper hay tac dong tung kenh.
+- Viet tieng Viet, co cau truc ro rang, khong chao hoi.
+- Do dai 700-1100 tu neu co du du lieu; neu it du lieu thi van phai chia muc va noi ro han che.
+- Bat buoc co cac muc:
+  1. Tom tat dieu hanh
+  2. Chat luong du lieu va gioi han phan tich
+  3. Xu huong theo thoi gian
+  4. Hieu qua kenh/ngan sach hoac tong chi phi
+  5. P&L / cau truc chi phi neu co financialBreakdown
+  6. Bat thuong, rui ro va gia thuyet can kiem chung
+  7. Ke hoach hanh dong 30 ngay
+- Neu co monthlyPivot/profitabilityByMonth/financialBreakdown, phai trich dan so lieu cu the tu cac mang do.
+- Nhan manh day la ML baseline, khong phai ket luan nhan qua tuyet doi.
+
+=== ML INSIGHTS ===
+${JSON.stringify(mlSummary, null, 2)}
+
+=== COT DU LIEU USER ===
+${headerLine}
+
+=== MAU DU LIEU USER ===
+${dataLines}
+  `.trim();
+
+  return callWithRetry(
+    async () => {
+      const result = await model.generateContent(prompt);
+      return result.response.text().trim();
+    },
+    getCacheKey('campaign-narrative', JSON.stringify(mlSummary), headerLine, dataLines),
+  );
+};
 
 export const getQuotaStatus = async () => {
   const status = await QuotaManager.peek();

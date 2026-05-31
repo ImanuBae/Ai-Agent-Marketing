@@ -1,0 +1,3 @@
+# No runtime dependencies are required for the baseline trainer.
+# The model is fitted with a small standard-library OLS implementation so
+# Railway/CI does not need to download pandas or scikit-learn for v1.

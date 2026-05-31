@@ -1,0 +1,95 @@
+{
+  "version": "platform-baseline-v1",
+  "trainedAt": "2026-05-28T12:03:32.978877+00:00",
+  "source": {
+    "dataset": "marketing.csv transformed to platform schema + platform-training-snapshots.json",
+    "url": "https://github.com/prasertcbs/basic-dataset/blob/master/marketing.csv",
+    "seedRows": 200,
+    "userRows": 0,
+    "note": "Uses real anonymized Facebook/Instagram/Threads/TikTok upload rows when exported from DB.",
+    "rows": 200,
+    "trainRows": 160,
+    "testRows": 40,
+    "randomSeed": 42
+  },
+  "features": [
+    "facebook",
+    "instagram",
+    "threads",
+    "tiktok"
+  ],
+  "target": "sales",
+  "intercept": 3.501989,
+  "coefficients": {
+    "facebook": 0.182727,
+    "instagram": 3.765613,
+    "threads": 0.016994,
+    "tiktok": -2.647348
+  },
+  "metrics": {
+    "train": {
+      "r2": 0.900222,
+      "mae": 1.546034,
+      "rmse": 2.052246
+    },
+    "test": {
+      "r2": 0.871476,
+      "mae": 1.351312,
+      "rmse": 1.823367
+    }
+  },
+  "featureStatistics": {
+    "facebook": {
+      "mean": 28.86225,
+      "std": 17.556988,
+      "min": 0.0,
+      "max": 59.52
+    },
+    "instagram": {
+      "mean": 73.12599,
+      "std": 44.633834,
+      "min": 0.3528,
+      "max": 149.3856
+    },
+    "threads": {
+      "mean": 8.775937,
+      "std": 6.337963,
+      "min": 0.09,
+      "max": 30.27
+    },
+    "tiktok": {
+      "mean": 100.98351,
+      "std": 61.6372,
+      "min": 0.4872,
+      "max": 206.2944
+    }
+  },
+  "targetStatistics": {
+    "mean": 16.95075,
+    "std": 6.496981,
+    "min": 1.92,
+    "max": 31.44
+  },
+  "featureImportance": {
+    "facebook": {
+      "standardizedCoefficient": 0.49379,
+      "share": 0.009589
+    },
+    "instagram": {
+      "standardizedCoefficient": 25.869517,
+      "share": 0.502365
+    },
+    "threads": {
+      "standardizedCoefficient": 0.016579,
+      "share": 0.000322
+    },
+    "tiktok": {
+      "standardizedCoefficient": 25.115531,
+      "share": 0.487724
+    }
+  },
+  "scaleHints": {
+    "spendVndPerDatasetUnit": 500000,
+    "salesVndPerDatasetUnit": 2000000
+  }
+}

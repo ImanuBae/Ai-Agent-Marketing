@@ -29,6 +29,7 @@ model User {
   timeSlots        TimeSlotStats[]
   salesReports     SalesReport[]
   campaignAnalyses CampaignAnalysis[]
+  platformTrainingSnapshots PlatformTrainingSnapshot[]
 
   @@map("users")
 }
@@ -162,8 +163,23 @@ model SalesReport {
   createdAt   DateTime           @default(now())
   user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   analyses    CampaignAnalysis[]
+  platformTrainingSnapshot PlatformTrainingSnapshot?
 
   @@map("sales_reports")
+}
+
+model PlatformTrainingSnapshot {
+  id            String      @id @default(cuid())
+  userId        String
+  salesReportId String      @unique
+  rowCount      Int
+  rows          Json
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  salesReport   SalesReport @relation(fields: [salesReportId], references: [id], onDelete: Cascade)
+
+  @@map("platform_training_snapshots")
 }
 
 model CampaignAnalysis {
@@ -173,6 +189,7 @@ model CampaignAnalysis {
   analysisText       String      @db.Text
   recommendation     String      // "continue" | "pivot" | "stop"
   effectivenessScore Float
+  mlInsights         Json?
   createdAt          DateTime    @default(now())
   user               User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   salesReport        SalesReport @relation(fields: [salesReportId], references: [id], onDelete: Cascade)

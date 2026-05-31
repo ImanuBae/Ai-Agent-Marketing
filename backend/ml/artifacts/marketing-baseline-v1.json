@@ -1,0 +1,80 @@
+{
+  "version": "marketing-baseline-v1",
+  "trainedAt": "2026-05-28T12:03:32.977363+00:00",
+  "source": {
+    "dataset": "marketing.csv",
+    "url": "https://github.com/prasertcbs/basic-dataset/blob/master/marketing.csv",
+    "rows": 200,
+    "trainRows": 160,
+    "testRows": 40,
+    "randomSeed": 42
+  },
+  "features": [
+    "youtube",
+    "facebook",
+    "newspaper"
+  ],
+  "target": "sales",
+  "intercept": 3.501989,
+  "coefficients": {
+    "youtube": 0.046096,
+    "facebook": 0.182727,
+    "newspaper": 0.004249
+  },
+  "metrics": {
+    "train": {
+      "r2": 0.900222,
+      "mae": 1.546034,
+      "rmse": 2.052246
+    },
+    "test": {
+      "r2": 0.871476,
+      "mae": 1.351312,
+      "rmse": 1.823367
+    }
+  },
+  "featureStatistics": {
+    "youtube": {
+      "mean": 174.1095,
+      "std": 106.271034,
+      "min": 0.84,
+      "max": 355.68
+    },
+    "facebook": {
+      "mean": 28.86225,
+      "std": 17.556988,
+      "min": 0.0,
+      "max": 59.52
+    },
+    "newspaper": {
+      "mean": 35.10375,
+      "std": 25.351853,
+      "min": 0.36,
+      "max": 121.08
+    }
+  },
+  "targetStatistics": {
+    "mean": 16.95075,
+    "std": 6.496981,
+    "min": 1.92,
+    "max": 31.44
+  },
+  "featureImportance": {
+    "youtube": {
+      "standardizedCoefficient": 0.753986,
+      "share": 0.596341
+    },
+    "facebook": {
+      "standardizedCoefficient": 0.49379,
+      "share": 0.390547
+    },
+    "newspaper": {
+      "standardizedCoefficient": 0.016579,
+      "share": 0.013112
+    }
+  },
+  "scaleHints": {
+    "spendVndPerDatasetUnit": 500000,
+    "salesVndPerDatasetUnit": 2000000
+  }
+}
