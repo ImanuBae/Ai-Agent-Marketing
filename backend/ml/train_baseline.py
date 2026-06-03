@@ -23,19 +23,48 @@ def read_rows(path: Path):
         ]
 
 
-def platform_rows_from_marketing(rows):
-    transformed = []
-    for row in rows:
-        transformed.append({
-            # This is a deterministic seed baseline for the app's platform schema.
-            # Replace it with real user-uploaded platform history when available.
-            "facebook": row["facebook"],
-            "instagram": row["youtube"] * 0.42,
-            "threads": row["newspaper"] * 0.25,
-            "tiktok": row["youtube"] * 0.58,
-            TARGET: row[TARGET],
+def platform_seed_rows():
+    """Deterministic seed baseline matching sample-platform-campaign schema.
+
+    The original platform seed transformed marketing.csv where sales is in the
+    1-31 range. The app's platform sample uses sales in the hundreds, so using
+    the transformed seed made every forecast look ~90% too low. This seed keeps
+    the demo schema and target scale aligned until real user snapshots exist.
+    """
+    rows = []
+    for index in range(180):
+        weekday_boost = 0.86 if index % 7 in (2, 3) else 1.0
+        seasonality = (
+            1
+            + math.sin((index / 30) * math.pi * 2) * 0.12
+            + math.sin((index / 14) * math.pi * 2) * 0.05
+        )
+        launch_pulse = 1.25 if 28 <= index % 90 <= 42 else 1.0
+        promo_pulse = 1.18 if 63 <= index % 90 <= 72 else 1.0
+
+        facebook = round((45 + index * 0.18 + math.sin((index / 11) * math.pi * 2) * 8) * weekday_boost)
+        instagram = round((70 + index * 0.28 + math.sin((index / 9) * math.pi * 2) * 13) * launch_pulse)
+        threads = round((12 + index * 0.06 + math.sin((index / 17) * math.pi * 2) * 3) * promo_pulse)
+        tiktok = round((85 + index * 0.38 + math.sin((index / 7) * math.pi * 2) * 17) * promo_pulse)
+
+        sales = round(
+            120
+            + facebook * 1.8
+            + instagram * 2.6
+            + threads * 0.9
+            + tiktok * 3.2
+            + math.sin((index / 21) * math.pi * 2) * 25
+            + seasonality * 10
+        )
+
+        rows.append({
+            "facebook": float(facebook),
+            "instagram": float(instagram),
+            "threads": float(threads),
+            "tiktok": float(tiktok),
+            TARGET: float(sales),
         })
-    return transformed
+    return rows
 
 
 def read_platform_snapshot_rows(path: Path):
@@ -269,7 +298,7 @@ def main():
         },
     )
 
-    seed_platform_rows = platform_rows_from_marketing(rows)
+    seed_platform_rows = platform_seed_rows()
     user_platform_rows = read_platform_snapshot_rows(PLATFORM_SNAPSHOTS_PATH)
 
     train_model(
@@ -277,11 +306,11 @@ def main():
         seed_platform_rows + user_platform_rows,
         ["facebook", "instagram", "threads", "tiktok"],
         {
-            "dataset": "marketing.csv transformed to platform schema + platform-training-snapshots.json",
-            "url": "https://github.com/prasertcbs/basic-dataset/blob/master/marketing.csv",
+            "dataset": "deterministic platform seed + platform-training-snapshots.json",
+            "url": None,
             "seedRows": len(seed_platform_rows),
             "userRows": len(user_platform_rows),
-            "note": "Uses real anonymized Facebook/Instagram/Threads/TikTok upload rows when exported from DB.",
+            "note": "Seed rows match sample-platform-campaign scale; real anonymized uploads are appended when exported from DB.",
         },
     )
 

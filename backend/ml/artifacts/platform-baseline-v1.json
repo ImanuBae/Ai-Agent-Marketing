@@ -1,15 +1,15 @@
 {
   "version": "platform-baseline-v1",
-  "trainedAt": "2026-05-28T12:03:32.978877+00:00",
+  "trainedAt": "2026-05-31T08:58:49.351280+00:00",
   "source": {
-    "dataset": "marketing.csv transformed to platform schema + platform-training-snapshots.json",
-    "url": "https://github.com/prasertcbs/basic-dataset/blob/master/marketing.csv",
-    "seedRows": 200,
+    "dataset": "deterministic platform seed + platform-training-snapshots.json",
+    "url": null,
+    "seedRows": 180,
     "userRows": 0,
-    "note": "Uses real anonymized Facebook/Instagram/Threads/TikTok upload rows when exported from DB.",
-    "rows": 200,
-    "trainRows": 160,
-    "testRows": 40,
+    "note": "Seed rows match sample-platform-campaign scale; real anonymized uploads are appended when exported from DB.",
+    "rows": 180,
+    "trainRows": 144,
+    "testRows": 36,
     "randomSeed": 42
   },
   "features": [
@@ -19,73 +19,73 @@
     "tiktok"
   ],
   "target": "sales",
-  "intercept": 3.501989,
+  "intercept": 129.039352,
   "coefficients": {
-    "facebook": 0.182727,
-    "instagram": 3.765613,
-    "threads": 0.016994,
-    "tiktok": -2.647348
+    "facebook": 1.961238,
+    "instagram": 2.532052,
+    "threads": 0.961494,
+    "tiktok": 3.186433
   },
   "metrics": {
     "train": {
-      "r2": 0.900222,
-      "mae": 1.546034,
-      "rmse": 2.052246
+      "r2": 0.983807,
+      "mae": 15.663827,
+      "rmse": 17.446062
     },
     "test": {
-      "r2": 0.871476,
-      "mae": 1.351312,
-      "rmse": 1.823367
+      "r2": 0.980048,
+      "mae": 16.801271,
+      "rmse": 18.208335
     }
   },
   "featureStatistics": {
     "facebook": {
-      "mean": 28.86225,
-      "std": 17.556988,
-      "min": 0.0,
-      "max": 59.52
+      "mean": 58.791667,
+      "std": 11.01191,
+      "min": 37.0,
+      "max": 85.0
     },
     "instagram": {
-      "mean": 73.12599,
-      "std": 44.633834,
-      "min": 0.3528,
-      "max": 149.3856
+      "mean": 98.861111,
+      "std": 19.327086,
+      "min": 59.0,
+      "max": 148.0
     },
     "threads": {
-      "mean": 8.775937,
-      "std": 6.337963,
-      "min": 0.09,
-      "max": 30.27
+      "mean": 17.819444,
+      "std": 4.279559,
+      "min": 10.0,
+      "max": 29.0
     },
     "tiktok": {
-      "mean": 100.98351,
-      "std": 61.6372,
-      "min": 0.4872,
-      "max": 206.2944
+      "mean": 121.916667,
+      "std": 25.970469,
+      "min": 70.0,
+      "max": 190.0
     }
   },
   "targetStatistics": {
-    "mean": 16.95075,
-    "std": 6.496981,
-    "min": 1.92,
-    "max": 31.44
+    "mean": 900.277778,
+    "std": 137.098629,
+    "min": 641.0,
+    "max": 1232.0
   },
   "featureImportance": {
     "facebook": {
-      "standardizedCoefficient": 0.49379,
-      "share": 0.009589
+      "standardizedCoefficient": 0.157529,
+      "share": 0.137209
     },
     "instagram": {
-      "standardizedCoefficient": 25.869517,
-      "share": 0.502365
+      "standardizedCoefficient": 0.356949,
+      "share": 0.310906
     },
     "threads": {
-      "standardizedCoefficient": 0.016579,
-      "share": 0.000322
+      "standardizedCoefficient": 0.030013,
+      "share": 0.026142
     },
     "tiktok": {
-      "standardizedCoefficient": 25.115531,
-      "share": 0.487724
+      "standardizedCoefficient": 0.603603,
+      "share": 0.525744
     }
   },
   "scaleHints": {
