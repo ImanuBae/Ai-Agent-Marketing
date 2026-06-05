@@ -8,6 +8,16 @@ const POLL_INTERVAL_MS = 60_000;
 
 type ScheduleWithContent = Schedule & { content: Content };
 
+function decryptSocialToken(encryptedToken: string, platform: string): string {
+  try {
+    return decrypt(encryptedToken);
+  } catch {
+    throw new Error(
+      `Không giải mã được token ${platform}. JWT_SECRET/OAUTH secret trên server có thể đã thay đổi; hãy đặt secret cố định trên deploy rồi kết nối lại ${platform}.`,
+    );
+  }
+}
+
 // ─── Facebook ─────────────────────────────────────────────────────────────────
 
 async function publishToFacebook(schedule: ScheduleWithContent): Promise<void> {
@@ -20,7 +30,7 @@ async function publishToFacebook(schedule: ScheduleWithContent): Promise<void> {
     throw new Error('Token Facebook đã hết hạn (>60 ngày). Vui lòng ngắt kết nối và kết nối lại.');
   }
 
-  const userToken = decrypt(account.accessToken);
+  const userToken = decryptSocialToken(account.accessToken, 'Facebook');
 
   let pages: Array<{ id: string; access_token: string; name: string }>;
   try {
@@ -76,7 +86,7 @@ async function publishToInstagram(schedule: ScheduleWithContent): Promise<void> 
     throw new Error('Instagram cần image URL. Hãy thêm ảnh vào bài đăng trước khi lên lịch.');
   }
 
-  const accessToken = decrypt(account.accessToken);
+  const accessToken = decryptSocialToken(account.accessToken, 'Instagram');
   const igUserId = account.accountId;
 
   const caption = [schedule.content.caption, schedule.content.hashtags.join(' ')]

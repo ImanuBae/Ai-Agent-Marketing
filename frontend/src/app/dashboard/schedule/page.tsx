@@ -28,6 +28,7 @@ interface ScheduleItem {
   status: "pending" | "published" | "failed";
   isOptimized: boolean;
   confidenceScore: number | null;
+  errorMsg?: string | null;
   content: {
     caption: string;
     hashtags: string[];
@@ -133,6 +134,12 @@ function slotTimeRange(slot: OptimalSlot) {
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
+
+function eventColor(evt: ScheduleItem) {
+  if (evt.status === "failed") return "bg-red-600";
+  if (evt.status === "published") return "bg-emerald-600";
+  return PLATFORM_COLORS[evt.platform] ?? "bg-gray-500";
+}
 
 export default function SchedulePage() {
   const today = new Date();
@@ -456,14 +463,22 @@ export default function SchedulePage() {
                           <div className="flex flex-col gap-1 overflow-hidden">
                             {dayEvents.map(evt => {
                               const isRescheduling = rescheduleId === evt.id;
+                              const title = [
+                                `${evt.content.caption} - ${localTime(evt.scheduledAt)}`,
+                                `Status: ${evt.status}`,
+                                evt.errorMsg ? `Error: ${evt.errorMsg}` : null,
+                              ].filter(Boolean).join("\n");
                               return (
                                 <div key={evt.id} className="flex flex-col gap-0.5">
                                   <div
-                                    title={`${evt.content.caption} — ${localTime(evt.scheduledAt)}`}
-                                    className={`text-[10px] font-bold px-1.5 py-1 rounded-md text-white truncate cursor-pointer hover:opacity-80 transition flex items-center justify-between gap-1 group/evt ${PLATFORM_COLORS[evt.platform] ?? "bg-gray-500"}`}
+                                    title={title}
+                                    className={`text-[10px] font-bold px-1.5 py-1 rounded-md text-white truncate cursor-pointer hover:opacity-80 transition flex items-center justify-between gap-1 group/evt ${eventColor(evt)}`}
                                   >
                                     <span className="truncate">
                                       {localTime(evt.scheduledAt)} {evt.content.caption.slice(0, 12)}
+                                      {evt.status === "failed" && (
+                                        <AlertCircle size={8} className="inline ml-1 text-red-100" />
+                                      )}
                                       {engagementDone.has(evt.id) && (
                                         <Check size={8} className="inline ml-1 text-green-300" />
                                       )}
@@ -498,6 +513,11 @@ export default function SchedulePage() {
                                       )}
                                     </div>
                                   </div>
+                                  {evt.status === "failed" && evt.errorMsg && (
+                                    <p className="truncate text-[9px] font-semibold text-red-600 dark:text-red-400" title={evt.errorMsg}>
+                                      {evt.errorMsg}
+                                    </p>
+                                  )}
                                   {/* Reschedule inline popover */}
                                   {isRescheduling && (
                                     <div className="bg-white dark:bg-slate-800 border border-[#E8734A]/30 rounded-xl p-2 shadow-lg flex flex-col gap-1">

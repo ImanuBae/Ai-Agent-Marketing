@@ -2,10 +2,10 @@ import crypto from 'crypto';
 import redis from './redis';
 
 // ─── Encryption ───────────────────────────────────────────────────────────────
-// Key is derived from JWT_SECRET — no separate env var needed.
+// Prefer a dedicated OAuth encryption secret; fall back to JWT_SECRET for older deployments.
 
 const encryptionKey = crypto.scryptSync(
-  process.env.JWT_SECRET ?? 'fallback-please-set-jwt-secret',
+  process.env.OAUTH_ENCRYPTION_SECRET ?? process.env.JWT_SECRET ?? 'fallback-please-set-jwt-secret',
   'oauth-encryption-salt-v1',
   32,
 );
